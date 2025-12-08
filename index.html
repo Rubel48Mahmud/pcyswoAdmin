@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pocchim Charbata Admin</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Open Sans', sans-serif; padding-bottom: 80px; }
+        
+        /* Login Screen */
+        #authScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: white; padding: 20px;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            padding: 30px; border-radius: 20px; width: 100%; max-width: 350px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        /* Header */
+        .header-bg {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white; padding: 30px 20px 80px 20px;
+            border-radius: 0 0 30px 30px; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative;
+        }
+        .org-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; margin-top: 10px; }
+        .menu-btn { position: absolute; top: 20px; right: 20px; color: white; background: rgba(255,255,255,0.1); border: none; padding: 8px 12px; border-radius: 8px; }
+        
+        /* Cards & Buttons */
+        .balance-card { background: white; margin: -60px 20px 20px 20px; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; position: relative; }
+        .balance-amount { font-size: 2.2rem; font-weight: 800; color: #2c3e50; font-family: 'Montserrat', sans-serif; }
+        .notice-manager-card { background: #fff3cd; border: 1px solid #ffeeba; margin: 0 20px 20px 20px; padding: 15px; border-radius: 12px; color: #856404; }
+        .action-btn { border-radius: 12px; padding: 12px; font-weight: 600; border: none; font-size: 0.9rem; transition: transform 0.2s; }
+        .action-btn:active { transform: scale(0.95); }
+        .btn-fund { background-color: #e3f9e5; color: #11998e; border: 1px solid #11998e; }
+        .btn-member { background-color: #eaf4ff; color: #0069d9; border: 1px solid #0069d9; }
+        .btn-expense { background-color: #ffeaea; color: #d63031; border: 1px solid #d63031; }
+        .member-card { background: white; margin: 10px 20px; padding: 15px; border-radius: 12px; border-left: 5px solid #11998e; box-shadow: 0 3px 6px rgba(0,0,0,0.03); cursor: pointer; }
+        
+        /* Utils */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 400px; }
+        .btn-primary-custom { background: linear-gradient(135deg, #11998e, #38ef7d); border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: 700; }
+        
+        /* Admin Info */
+        .admin-info-card { background: white; border-radius: 15px; padding: 20px; margin: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; }
+        .admin-edit-icon { position: absolute; top: 20px; right: 20px; color: #0984e3; font-size: 1.2rem; cursor: pointer; }
+        .admin-label { font-size: 0.85rem; color: #7f8c8d; font-weight: 600; text-transform: uppercase; }
+        .admin-value { font-size: 1rem; color: #2c3e50; font-weight: 700; margin-bottom: 15px; word-break: break-all; }
+        
+        /* Tables */
+        .table-responsive { background: white; margin: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); padding: 15px; }
+        .table thead th { background-color: #f8f9fa; font-size: 0.85rem; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Authentication Screen (Replaces PIN) -->
+    <div id="authScreen">
+        <div class="login-card">
+            <div class="text-center mb-4">
+                <i class="fas fa-user-shield fa-3x mb-3 text-white"></i>
+                <h4 class="fw-bold">Admin Login</h4>
+                <small class="text-light opacity-75">Secure Access</small>
+            </div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <input type="email" id="adminEmail" class="form-control" placeholder="Email Address" required>
+                </div>
+                <div class="mb-4">
+                    <input type="password" id="adminPass" class="form-control" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-light w-100 fw-bold text-primary">LOGIN</button>
+            </form>
+            <div id="loginError" class="text-warning text-center mt-3 small"></div>
+        </div>
+    </div>
+
+    <!-- Main App Content -->
+    <div id="mainApp" style="display:none;">
+
+        <!-- Header -->
+        <div class="header-bg">
+            <button class="menu-btn" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <div class="org-name">Pocchim Charbata Youth<br>Social Welfare Organization</div>
+            <small>Admin Panel</small>
+        </div>
+
+        <!-- Menu -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMenu">
+            <div class="offcanvas-header bg-light">
+                <h5 class="offcanvas-title fw-bold">Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('home')"><i class="fas fa-home me-2 text-primary"></i> Home</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('list')"><i class="fas fa-users me-2 text-success"></i> Member List</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('search')"><i class="fas fa-search me-2 text-info"></i> Search</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('statement')"><i class="fas fa-file-alt me-2 text-warning"></i> Statement</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('about')"><i class="fas fa-info-circle me-2 text-dark"></i> Admin Info</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3 text-danger fw-bold" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: HOME -->
+        <div id="viewHome" class="view-section active">
+            <div class="balance-card">
+                <div class="text-uppercase text-muted" style="font-size: 0.75rem;">Current Net Balance</div>
+                <div class="balance-amount">Tk. <span id="totalFund">...</span></div>
+                <div class="mt-2 d-flex justify-content-center gap-3 small">
+                    <span class="text-success"><i class="fas fa-arrow-down"></i> In: <span id="totalIn">0</span></span>
+                    <span class="text-danger"><i class="fas fa-arrow-up"></i> Out: <span id="totalOut">0</span></span>
+                </div>
+            </div>
+
+            <div class="notice-manager-card shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold m-0"><i class="fas fa-bullhorn me-1"></i> Notice Board</h6>
+                    <button class="btn btn-sm btn-outline-dark bg-white border-0 shadow-sm" onclick="openNoticeManagerModal()">Manage</button>
+                </div>
+                <p class="small fst-italic mb-2" id="currentNoticeHome">Loading...</p>
+                <button class="btn btn-sm btn-warning w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#addNoticeModal"><i class="fas fa-plus-circle"></i> Post Notice</button>
+            </div>
+
+            <div class="container mb-3">
+                <div class="row g-2">
+                    <div class="col-4"><button class="btn action-btn btn-fund w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#addFundModal"><i class="fas fa-hand-holding-dollar fa-lg mb-1"></i><br>Add Fund</button></div>
+                    <div class="col-4"><button class="btn action-btn btn-member w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#addMemberModal"><i class="fas fa-user-plus fa-lg mb-1"></i><br>Member</button></div>
+                    <div class="col-4"><button class="btn action-btn btn-expense w-100 shadow-sm" onclick="openExpenseModal()"><i class="fas fa-file-invoice-dollar fa-lg mb-1"></i><br>Expense</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: MEMBER LIST -->
+        <div id="viewList" class="view-section">
+            <div class="d-flex justify-content-between px-4 mt-3 mb-2 text-muted fw-bold small">
+                <span>MEMBERS LIST</span><span id="memberCountList">0</span>
+            </div>
+            <div id="fullMembersContainer"></div>
+        </div>
+
+        <!-- VIEW: SEARCH -->
+        <div id="viewSearch" class="view-section">
+            <div class="container mt-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-5"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 rounded-end-5" id="searchInput" placeholder="Search by name...">
+                </div>
+            </div>
+            <div id="searchResultsContainer"></div>
+        </div>
+
+        <!-- VIEW: STATEMENT -->
+        <div id="viewStatement" class="view-section">
+            <div class="container mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted fw-bold m-0">STATEMENT</h6>
+                    <button class="btn btn-sm btn-dark" onclick="downloadStatementPDF()"><i class="fas fa-download"></i> PDF</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0" id="statementTable">
+                        <thead><tr><th>SL</th><th>Name</th><th>Mobile</th><th class="text-end">Total</th></tr></thead>
+                        <tbody id="statementTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: ABOUT ADMIN -->
+        <div id="viewAbout" class="view-section">
+            <div class="container mt-3">
+                <div class="admin-info-card">
+                    <i class="fas fa-pen-to-square admin-edit-icon" onclick="openEditAdminModal()"></i>
+                    <div class="admin-label">Admin Name</div><div class="admin-value" id="disp_adminName">...</div>
+                    <div class="admin-label">Bkash</div><div class="admin-value" id="disp_adminPhone">...</div>
+                    <hr>
+                    <div class="admin-label">Bank Name</div><div class="admin-value" id="disp_bankName">...</div>
+                    <div class="admin-label">Account Name</div><div class="admin-value" id="disp_accName">...</div>
+                    <div class="admin-label">Account Number</div><div class="admin-value" id="disp_accNum">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Simplified for brevity but fully functional) -->
+    
+    <!-- Add Notice -->
+    <div class="modal fade" id="addNoticeModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning"><h6 class="modal-title fw-bold">POST NOTICE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addNoticeForm"><textarea class="form-control mb-3" id="noticeMessage" required placeholder="Notice..."></textarea><input type="date" class="form-control mb-3" id="noticeDate" required><button type="submit" class="btn btn-dark w-100">Publish</button></form></div></div></div></div>
+
+    <!-- Manage Notices -->
+    <div class="modal fade" id="manageNoticesModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-dark text-white"><h6 class="modal-title">MANAGE NOTICES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light" id="adminNoticeListContainer"></div></div></div></div>
+
+    <!-- Add Member -->
+    <div class="modal fade" id="addMemberModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">NEW MEMBER</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addMemberForm"><input type="text" class="form-control mb-3" id="mName" required placeholder="Name"><input type="tel" class="form-control mb-3" id="mPhone" required placeholder="Mobile"><button type="submit" class="btn btn-primary-custom text-white">Save</button></form></div></div></div></div>
+
+    <!-- Add Fund -->
+    <div class="modal fade" id="addFundModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">ADD FUND</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addFundForm"><input class="form-control mb-3" list="memberDatalistOptions" id="fundMemberInput" placeholder="Select Member..." required><datalist id="memberDatalistOptions"></datalist><input type="number" class="form-control mb-3" id="fundAmount" required placeholder="Amount"><input type="date" class="form-control mb-4" id="fundDate" required><button type="submit" class="btn btn-primary-custom text-white">Deposit</button></form></div></div></div></div>
+
+    <!-- Expense Modal -->
+    <div class="modal fade" id="expenseModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-danger"><h6 class="modal-title text-white">EXPENSES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><form id="addExpenseForm" class="card p-3 mb-3 border-0 shadow-sm"><div class="row g-2"><div class="col-6"><input type="number" class="form-control" id="expAmount" required placeholder="Tk"></div><div class="col-6"><input type="date" class="form-control" id="expDate" required></div><div class="col-12"><input type="text" class="form-control" id="expReason" required placeholder="Reason"></div><button type="submit" class="btn btn-danger w-100 mt-2">Add Expense</button></div></form><div id="expenseListContainer"></div></div></div></div></div>
+
+    <!-- Member Details/Edit -->
+    <div class="modal fade" id="memberDetailsModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">DETAILS & EDIT</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div class="text-center p-3 mb-3 bg-white rounded shadow-sm"><h4 id="detailName" class="fw-bold">...</h4><div id="detailPhone" class="text-muted small">...</div><span class="text-primary small" onclick="toggleEditMemberMode()" style="cursor:pointer"><i class="fas fa-pen"></i> Edit</span><div id="editMemberFormDiv" class="d-none mt-2 p-2 bg-light border"><input id="editMName" class="form-control mb-1"><input id="editMPhone" class="form-control mb-1"><button onclick="saveMemberEdit()" class="btn btn-success btn-sm w-100">Update</button></div><hr><h2 class="text-success fw-bold">Tk. <span id="detailTotal">0</span></h2></div><div id="transactionHistory"></div></div></div></div></div>
+
+    <!-- Edit Admin -->
+    <div class="modal fade" id="editAdminModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">EDIT PROFILE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="editAdminForm"><div class="mb-3"><label>Name</label><input type="text" class="form-control" id="in_adminName"></div><div class="mb-3"><label>Bkash</label><input type="text" class="form-control" id="in_adminPhone"></div><hr><input type="text" class="form-control mb-2" id="in_bankName" placeholder="Bank"><input type="text" class="form-control mb-2" id="in_accName" placeholder="Acc Name"><input type="text" class="form-control mb-2" id="in_accNum" placeholder="Acc Num"><button type="submit" class="btn btn-primary w-100 mt-3">Save</button></form></div></div></div></div>
+
+    <!-- Toast -->
+    <div class="toast-container"><div id="customToast" class="toast align-items-center border-0 shadow-lg" role="alert"><div class="d-flex"><div class="toast-body fw-bold" id="toastMessage"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <!-- Auth Added -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGsoe7Pdt_lh-Hl1VHjPukjug-YZq6qJk",
+            authDomain: "pocchimcharbataapp.firebaseapp.com",
+            projectId: "pocchimcharbataapp",
+            storageBucket: "pocchimcharbataapp.firebasestorage.app",
+            messagingSenderId: "143592441304",
+            appId: "1:143592441304:web:8a26e243dfab0013ca1ead"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        // AUTHENTICATION LOGIC
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                loadAllData();
+            } else {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const emai = document.getElementById('adminEmail').value;
+            const pass = document.getElementById('adminPass').value;
+            auth.signInWithEmailAndPassword(emai, pass)
+                .catch(error => document.getElementById('loginError').innerText = "Invalid Email or Password");
+        });
+
+        function logout() { auth.signOut(); }
+
+        // APP LOGIC
+        let allMembers={}, allTransactions={}, allExpenses={}, allNotices={}, adminInfo={}, currentDetailMemberId=null, memberNameMap={};
+
+        function loadAllData() {
+            const today = new Date().toISOString().split('T')[0];
+            ['fundDate','expDate','noticeDate'].forEach(id => document.getElementById(id).value = today);
+
+            db.ref('members').on('value', snap => { allMembers = snap.val() || {}; renderDataDependants(); });
+            db.ref('transactions').on('value', snap => { allTransactions = snap.val() || {}; renderDataDependants(); if(currentDetailMemberId) showMiniStatement(currentDetailMemberId); });
+            db.ref('expenses').on('value', snap => { allExpenses = snap.val() || {}; renderDataDependants(); renderExpenseList(); });
+            db.ref('notices').on('value', snap => { allNotices = snap.val() || {}; renderHomeNotice(); renderNoticeList(); });
+            db.ref('adminInfo').on('value', snap => { adminInfo = snap.val() || {}; renderAdminInfo(); });
+        }
+
+        function renderDataDependants() {
+            calcTotals(); renderMembersLists(); renderStatementTable(); populateFundDatalist();
+        }
+
+        function calcTotals() {
+            let tin=0, tout=0;
+            for(let id in allTransactions) tin += parseFloat(allTransactions[id].amount);
+            for(let id in allExpenses) tout += parseFloat(allExpenses[id].amount);
+            document.getElementById('totalFund').innerText = (tin-tout).toLocaleString();
+            document.getElementById('totalIn').innerText = tin.toLocaleString();
+            document.getElementById('totalOut').innerText = tout.toLocaleString();
+        }
+
+        function renderMembersLists() {
+            const cont = document.getElementById('fullMembersContainer');
+            const searchCont = document.getElementById('searchResultsContainer');
+            cont.innerHTML = ''; searchCont.innerHTML = '';
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const ids = Object.keys(allMembers).sort((a,b) => allMembers[a].name.localeCompare(allMembers[b].name));
+            
+            let count = 0;
+            ids.forEach(id => {
+                const m = allMembers[id];
+                let tot = 0;
+                for(let tid in allTransactions) if(allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount);
+                const html = `
+                    <div class="member-card d-flex justify-content-between align-items-center" onclick="showMiniStatement('${id}')">
+                        <div><h6 class="mb-0 fw-bold text-dark">${m.name}</h6><small class="text-muted">${m.phone}</small></div>
+                        <div class="text-end"><span class="fw-bold text-success">Tk. ${tot.toLocaleString()}</span></div>
+                    </div>`;
+                cont.innerHTML += html;
+                if(m.name.toLowerCase().includes(searchVal)) searchCont.innerHTML += html;
+                count++;
+            });
+            document.getElementById('memberCountList').innerText = count;
+        }
+
+        function populateFundDatalist() {
+            const dl = document.getElementById('memberDatalistOptions'); dl.innerHTML = ''; memberNameMap = {};
+            Object.keys(allMembers).sort((a,b)=>allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
+                const val = `${allMembers[id].name} (${allMembers[id].phone})`;
+                memberNameMap[val] = id;
+                const opt = document.createElement('option'); opt.value = val; dl.appendChild(opt);
+            });
+        }
+
+        function renderStatementTable() {
+            const tb = document.getElementById('statementTableBody'); tb.innerHTML = '';
+            let sl = 1;
+            Object.keys(allMembers).sort((a,b)=>allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
+                let tot = 0;
+                for(let tid in allTransactions) if(allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount);
+                tb.innerHTML += `<tr><td>${sl++}</td><td>${allMembers[id].name}</td><td>${allMembers[id].phone}</td><td class="text-end fw-bold">${tot}</td></tr>`;
+            });
+        }
+
+        // Transactions & CRUD
+        document.getElementById('addMemberForm').addEventListener('submit', e => {
+            e.preventDefault();
+            db.ref('members').push({ name: document.getElementById('mName').value, phone: document.getElementById('mPhone').value })
+            .then(() => { showToast("Member Added"); document.getElementById('addMemberForm').reset(); bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide(); });
+        });
+
+        document.getElementById('addFundForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const mid = memberNameMap[document.getElementById('fundMemberInput').value];
+            if(!mid) return showToast("Select valid member", "danger");
+            db.ref('transactions').push({ memberId: mid, amount: parseFloat(document.getElementById('fundAmount').value), date: document.getElementById('fundDate').value })
+            .then(() => { showToast("Fund Added"); document.getElementById('addFundForm').reset(); document.getElementById('fundDate').value=new Date().toISOString().split('T')[0]; bootstrap.Modal.getInstance(document.getElementById('addFundModal')).hide(); });
+        });
+
+        document.getElementById('addExpenseForm').addEventListener('submit', e => {
+            e.preventDefault();
+            db.ref('expenses').push({ amount: parseFloat(document.getElementById('expAmount').value), date: document.getElementById('expDate').value, reason: document.getElementById('expReason').value })
+            .then(() => { showToast("Expense Added"); document.getElementById('addExpenseForm').reset(); document.getElementById('expDate').value=new Date().toISOString().split('T')[0]; });
+        });
+
+        function renderExpenseList() {
+            const c = document.getElementById('expenseListContainer'); c.innerHTML = '';
+            const arr = []; for(let id in allExpenses) arr.push({id,...allExpenses[id]});
+            arr.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e => {
+                c.innerHTML += `<div class="card mb-2 shadow-sm border-0"><div class="card-body p-2 d-flex justify-content-between align-items-center">
+                <div><span class="fw-bold text-danger">Tk. ${e.amount}</span> <small class="text-muted">${e.reason}</small></div>
+                <button class="btn btn-sm text-danger" onclick="if(confirm('Delete?')) db.ref('expenses/${e.id}').remove()"><i class="fas fa-trash"></i></button></div></div>`;
+            });
+        }
+
+        // Notices
+        document.getElementById('addNoticeForm').addEventListener('submit', e => {
+            e.preventDefault();
+            db.ref('notices').push({ message: document.getElementById('noticeMessage').value, date: document.getElementById('noticeDate').value })
+            .then(() => { showToast("Notice Published"); document.getElementById('addNoticeForm').reset(); bootstrap.Modal.getInstance(document.getElementById('addNoticeModal')).hide(); });
+        });
+
+        function renderHomeNotice() {
+            const arr = []; for(let id in allNotices) arr.push(allNotices[id]);
+            arr.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            document.getElementById('currentNoticeHome').innerText = arr.length ? arr[0].message.substring(0,50)+"..." : "No notices.";
+        }
+        
+        function renderNoticeList() {
+            const c = document.getElementById('adminNoticeListContainer'); c.innerHTML = '';
+            const arr = []; for(let id in allNotices) arr.push({id,...allNotices[id]});
+            arr.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(n => {
+                c.innerHTML += `<div class="bg-white p-2 mb-2 rounded shadow-sm d-flex justify-content-between"><div><small class="fw-bold d-block">${n.date}</small><span>${n.message}</span></div><button class="btn text-danger" onclick="if(confirm('Delete?')) db.ref('notices/${n.id}').remove()"><i class="fas fa-trash"></i></button></div>`;
+            });
+        }
+        function openNoticeManagerModal() { renderNoticeList(); new bootstrap.Modal(document.getElementById('manageNoticesModal')).show(); }
+
+        // Details & Admin Info
+        function showMiniStatement(mid) {
+            currentDetailMemberId = mid;
+            document.getElementById('detailName').innerText = allMembers[mid].name;
+            document.getElementById('detailPhone').innerText = allMembers[mid].phone;
+            document.getElementById('editMName').value = allMembers[mid].name;
+            document.getElementById('editMPhone').value = allMembers[mid].phone;
+            document.getElementById('editMemberFormDiv').classList.add('d-none');
+            
+            const hc = document.getElementById('transactionHistory'); hc.innerHTML = '';
+            let tot = 0; const txs = [];
+            for(let tid in allTransactions) if(allTransactions[tid].memberId === mid) txs.push({id:tid,...allTransactions[tid]});
+            txs.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t => {
+                tot += parseFloat(t.amount);
+                hc.innerHTML += `<div class="p-2 border-bottom d-flex justify-content-between bg-white">
+                <div><span class="d-block fw-bold">${new Date(t.date).toLocaleDateString('en-GB')}</span></div>
+                <div><span class="fw-bold text-success me-3">+${t.amount}</span><i class="fas fa-trash text-danger" style="cursor:pointer" onclick="if(confirm('Delete deposit?')) db.ref('transactions/${t.id}').remove()"></i></div></div>`;
+            });
+            document.getElementById('detailTotal').innerText = tot.toLocaleString();
+            new bootstrap.Modal(document.getElementById('memberDetailsModal')).show();
+        }
+
+        function toggleEditMemberMode() { document.getElementById('editMemberFormDiv').classList.toggle('d-none'); }
+        function saveMemberEdit() {
+            db.ref('members/'+currentDetailMemberId).update({ name: document.getElementById('editMName').value, phone: document.getElementById('editMPhone').value })
+            .then(() => { showToast("Updated"); toggleEditMemberMode(); });
+        }
+
+        function renderAdminInfo() {
+            ['Name','Phone','bankName','accName','accNum'].forEach(k => {
+                const val = adminInfo[k=='Name'?'name':(k=='Phone'?'phone':k)] || '...';
+                if(document.getElementById('disp_admin'+k)) document.getElementById('disp_admin'+k).innerText = val; // for name/phone
+                else document.getElementById('disp_'+k).innerText = val; // for bank details
+            });
+        }
+        function openEditAdminModal() {
+            document.getElementById('in_adminName').value = adminInfo.name||'';
+            document.getElementById('in_adminPhone').value = adminInfo.phone||'';
+            ['bankName','accName','accNum'].forEach(k => document.getElementById('in_'+k).value = adminInfo[k]||'');
+            new bootstrap.Modal(document.getElementById('editAdminModal')).show();
+        }
+        document.getElementById('editAdminForm').addEventListener('submit', e => {
+            e.preventDefault();
+            db.ref('adminInfo').set({
+                name: document.getElementById('in_adminName').value, phone: document.getElementById('in_adminPhone').value,
+                bankName: document.getElementById('in_bankName').value, accName: document.getElementById('in_accName').value, accNum: document.getElementById('in_accNum').value
+            }).then(() => { showToast("Admin Info Saved"); bootstrap.Modal.getInstance(document.getElementById('editAdminModal')).hide(); });
+        });
+
+        // Utils
+        function switchView(v) {
+            bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasMenu')).hide();
+            document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active'));
+            document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');
+            window.scrollTo(0,0);
+        }
+        document.getElementById('searchInput').addEventListener('keyup', renderMembersLists);
+        function showToast(m,t='success') { const el=document.getElementById('customToast'); document.getElementById('toastMessage').innerText=m; el.className=`toast align-items-center border-0 shadow-lg text-white bg-${t}`; new bootstrap.Toast(el).show(); }
+        function downloadStatementPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("Pocchim Charbata Statement", 14, 15);
+            doc.autoTable({ html: '#statementTable', startY: 25 });
+            doc.save("Statement.pdf");
+        }
+    </script>
+</body>
+</html>
