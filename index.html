@@ -1,3 +1,4 @@
+<!-- START OF FILE foundation apps admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,8 +63,8 @@
         /* Admin Info */
         .admin-info-card { background: white; border-radius: 15px; padding: 20px; margin: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; }
         .admin-edit-icon { position: absolute; top: 20px; right: 20px; color: #0984e3; font-size: 1.2rem; cursor: pointer; }
-        .admin-label { font-size: 0.85rem; color: #7f8c8d; font-weight: 600; text-transform: uppercase; }
-        .admin-value { font-size: 1rem; color: #2c3e50; font-weight: 700; margin-bottom: 15px; word-break: break-all; }
+        .admin-label { font-size: 0.85rem; color: #7f8c8d; font-weight: 600; text-transform: uppercase; margin-top: 10px; }
+        .admin-value { font-size: 1rem; color: #2c3e50; font-weight: 700; margin-bottom: 5px; word-break: break-all; }
         
         /* Tables */
         .table-responsive { background: white; margin: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); padding: 15px; }
@@ -72,7 +73,7 @@
 </head>
 <body>
 
-    <!-- 1. Authentication Screen (Replaces PIN) -->
+    <!-- 1. Authentication Screen -->
     <div id="authScreen">
         <div class="login-card">
             <div class="text-center mb-4">
@@ -145,8 +146,10 @@
 
             <div class="container mb-3">
                 <div class="row g-2">
-                    <div class="col-4"><button class="btn action-btn btn-fund w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#addFundModal"><i class="fas fa-hand-holding-dollar fa-lg mb-1"></i><br>Add Fund</button></div>
+                    <!-- ADD FUND BUTTON UPDATED -->
+                    <div class="col-4"><button class="btn action-btn btn-fund w-100 shadow-sm" onclick="openFundMemberSelect()"><i class="fas fa-hand-holding-dollar fa-lg mb-1"></i><br>Add Fund</button></div>
                     <div class="col-4"><button class="btn action-btn btn-member w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#addMemberModal"><i class="fas fa-user-plus fa-lg mb-1"></i><br>Member</button></div>
+                    <!-- EXPENSE BUTTON FIXED -->
                     <div class="col-4"><button class="btn action-btn btn-expense w-100 shadow-sm" onclick="openExpenseModal()"><i class="fas fa-file-invoice-dollar fa-lg mb-1"></i><br>Expense</button></div>
                 </div>
             </div>
@@ -193,17 +196,30 @@
                 <div class="admin-info-card">
                     <i class="fas fa-pen-to-square admin-edit-icon" onclick="openEditAdminModal()"></i>
                     <div class="admin-label">Admin Name</div><div class="admin-value" id="disp_adminName">...</div>
-                    <div class="admin-label">Bkash</div><div class="admin-value" id="disp_adminPhone">...</div>
+                    <div class="admin-label">Mobile (bKash Personal)</div><div class="admin-value" id="disp_adminPhone">...</div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <div class="admin-label">Facebook</div>
+                            <div class="admin-value small"><a href="#" id="disp_fbLink" target="_blank" class="text-decoration-none">View Profile</a></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="admin-label">WhatsApp</div>
+                            <div class="admin-value small" id="disp_waNum">...</div>
+                        </div>
+                    </div>
+
                     <hr>
                     <div class="admin-label">Bank Name</div><div class="admin-value" id="disp_bankName">...</div>
                     <div class="admin-label">Account Name</div><div class="admin-value" id="disp_accName">...</div>
                     <div class="admin-label">Account Number</div><div class="admin-value" id="disp_accNum">...</div>
+                    <div class="admin-label">Routing Number</div><div class="admin-value" id="disp_routingNum">...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals (Simplified for brevity but fully functional) -->
+    <!-- Modals -->
     
     <!-- Add Notice -->
     <div class="modal fade" id="addNoticeModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning"><h6 class="modal-title fw-bold">POST NOTICE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addNoticeForm"><textarea class="form-control mb-3" id="noticeMessage" required placeholder="Notice..."></textarea><input type="date" class="form-control mb-3" id="noticeDate" required><button type="submit" class="btn btn-dark w-100">Publish</button></form></div></div></div></div>
@@ -214,17 +230,47 @@
     <!-- Add Member -->
     <div class="modal fade" id="addMemberModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">NEW MEMBER</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addMemberForm"><input type="text" class="form-control mb-3" id="mName" required placeholder="Name"><input type="tel" class="form-control mb-3" id="mPhone" required placeholder="Mobile"><button type="submit" class="btn btn-primary-custom text-white">Save</button></form></div></div></div></div>
 
-    <!-- Add Fund -->
-    <div class="modal fade" id="addFundModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">ADD FUND</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addFundForm"><input class="form-control mb-3" list="memberDatalistOptions" id="fundMemberInput" placeholder="Select Member..." required><datalist id="memberDatalistOptions"></datalist><input type="number" class="form-control mb-3" id="fundAmount" required placeholder="Amount"><input type="date" class="form-control mb-4" id="fundDate" required><button type="submit" class="btn btn-primary-custom text-white">Deposit</button></form></div></div></div></div>
+    <!-- NEW: Select Member for Fund -->
+    <div class="modal fade" id="selectMemberForFundModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-success text-white"><h6 class="modal-title">SELECT MEMBER FOR FUND</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light">
+        <div class="input-group mb-3"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span><input type="text" class="form-control" id="fundMemberSearch" placeholder="Search member..."></div>
+        <div id="fundMemberListContainer"></div>
+    </div></div></div></div>
 
-    <!-- Expense Modal -->
+    <!-- Add Fund (Step 2) -->
+    <div class="modal fade" id="addFundModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">DEPOSIT FUND</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+        <form id="addFundForm">
+            <label class="small text-muted mb-1">Member</label>
+            <input class="form-control mb-3 fw-bold text-success" id="fundMemberNameDisplay" readonly>
+            <input type="hidden" id="fundMemberIdHidden">
+            <label class="small text-muted mb-1">Amount</label>
+            <input type="number" class="form-control mb-3" id="fundAmount" required placeholder="Amount (Tk)">
+            <input type="date" class="form-control mb-4" id="fundDate" required>
+            <button type="submit" class="btn btn-primary-custom text-white">Deposit</button>
+        </form>
+    </div></div></div></div>
+
+    <!-- Expense Modal (Fixed) -->
     <div class="modal fade" id="expenseModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-danger"><h6 class="modal-title text-white">EXPENSES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><form id="addExpenseForm" class="card p-3 mb-3 border-0 shadow-sm"><div class="row g-2"><div class="col-6"><input type="number" class="form-control" id="expAmount" required placeholder="Tk"></div><div class="col-6"><input type="date" class="form-control" id="expDate" required></div><div class="col-12"><input type="text" class="form-control" id="expReason" required placeholder="Reason"></div><button type="submit" class="btn btn-danger w-100 mt-2">Add Expense</button></div></form><div id="expenseListContainer"></div></div></div></div></div>
 
     <!-- Member Details/Edit -->
     <div class="modal fade" id="memberDetailsModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">DETAILS & EDIT</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div class="text-center p-3 mb-3 bg-white rounded shadow-sm"><h4 id="detailName" class="fw-bold">...</h4><div id="detailPhone" class="text-muted small">...</div><span class="text-primary small" onclick="toggleEditMemberMode()" style="cursor:pointer"><i class="fas fa-pen"></i> Edit</span><div id="editMemberFormDiv" class="d-none mt-2 p-2 bg-light border"><input id="editMName" class="form-control mb-1"><input id="editMPhone" class="form-control mb-1"><button onclick="saveMemberEdit()" class="btn btn-success btn-sm w-100">Update</button></div><hr><h2 class="text-success fw-bold">Tk. <span id="detailTotal">0</span></h2></div><div id="transactionHistory"></div></div></div></div></div>
 
-    <!-- Edit Admin -->
-    <div class="modal fade" id="editAdminModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">EDIT PROFILE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="editAdminForm"><div class="mb-3"><label>Name</label><input type="text" class="form-control" id="in_adminName"></div><div class="mb-3"><label>Bkash</label><input type="text" class="form-control" id="in_adminPhone"></div><hr><input type="text" class="form-control mb-2" id="in_bankName" placeholder="Bank"><input type="text" class="form-control mb-2" id="in_accName" placeholder="Acc Name"><input type="text" class="form-control mb-2" id="in_accNum" placeholder="Acc Num"><button type="submit" class="btn btn-primary w-100 mt-3">Save</button></form></div></div></div></div>
+    <!-- Edit Admin (Updated Fields) -->
+    <div class="modal fade" id="editAdminModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">EDIT PROFILE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="editAdminForm">
+        <div class="mb-3"><label>Name</label><input type="text" class="form-control" id="in_adminName"></div>
+        <div class="mb-3"><label>Mobile (bKash Personal)</label><input type="text" class="form-control" id="in_adminPhone"></div>
+        
+        <div class="mb-3"><label>Facebook Profile Link</label><input type="text" class="form-control" id="in_fbLink" placeholder="https://facebook.com/..."></div>
+        <div class="mb-3"><label>WhatsApp Number</label><input type="text" class="form-control" id="in_waNum" placeholder="018..."></div>
+
+        <hr>
+        <div class="mb-2"><label>Bank Name</label><input type="text" class="form-control" id="in_bankName"></div>
+        <div class="mb-2"><label>Account Name</label><input type="text" class="form-control" id="in_accName"></div>
+        <div class="mb-2"><label>Account Number</label><input type="text" class="form-control" id="in_accNum"></div>
+        <div class="mb-2"><label>Routing Number</label><input type="text" class="form-control" id="in_routingNum"></div>
+        
+        <button type="submit" class="btn btn-primary w-100 mt-3">Save Changes</button>
+    </form></div></div></div></div>
 
     <!-- Toast -->
     <div class="toast-container"><div id="customToast" class="toast align-items-center border-0 shadow-lg" role="alert"><div class="d-flex"><div class="toast-body fw-bold" id="toastMessage"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div></div>
@@ -232,7 +278,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <!-- Auth Added -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -271,7 +317,7 @@
         function logout() { auth.signOut(); }
 
         // APP LOGIC
-        let allMembers={}, allTransactions={}, allExpenses={}, allNotices={}, adminInfo={}, currentDetailMemberId=null, memberNameMap={};
+        let allMembers={}, allTransactions={}, allExpenses={}, allNotices={}, adminInfo={}, currentDetailMemberId=null;
 
         function loadAllData() {
             const today = new Date().toISOString().split('T')[0];
@@ -285,7 +331,7 @@
         }
 
         function renderDataDependants() {
-            calcTotals(); renderMembersLists(); renderStatementTable(); populateFundDatalist();
+            calcTotals(); renderMembersLists(); renderStatementTable();
         }
 
         function calcTotals() {
@@ -321,15 +367,6 @@
             document.getElementById('memberCountList').innerText = count;
         }
 
-        function populateFundDatalist() {
-            const dl = document.getElementById('memberDatalistOptions'); dl.innerHTML = ''; memberNameMap = {};
-            Object.keys(allMembers).sort((a,b)=>allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
-                const val = `${allMembers[id].name} (${allMembers[id].phone})`;
-                memberNameMap[val] = id;
-                const opt = document.createElement('option'); opt.value = val; dl.appendChild(opt);
-            });
-        }
-
         function renderStatementTable() {
             const tb = document.getElementById('statementTableBody'); tb.innerHTML = '';
             let sl = 1;
@@ -340,20 +377,67 @@
             });
         }
 
-        // Transactions & CRUD
+        // --- NEW FUND LOGIC START ---
+        function openFundMemberSelect() {
+            renderFundSelectionList();
+            new bootstrap.Modal(document.getElementById('selectMemberForFundModal')).show();
+        }
+
+        function renderFundSelectionList() {
+            const container = document.getElementById('fundMemberListContainer');
+            const search = document.getElementById('fundMemberSearch').value.toLowerCase();
+            container.innerHTML = '';
+            
+            Object.keys(allMembers).sort((a,b)=>allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
+                const m = allMembers[id];
+                if(m.name.toLowerCase().includes(search) || m.phone.includes(search)) {
+                    const div = document.createElement('div');
+                    div.className = 'd-flex justify-content-between align-items-center p-3 border-bottom bg-white';
+                    div.innerHTML = `<div><h6 class="mb-0 fw-bold">${m.name}</h6><small class="text-muted">${m.phone}</small></div><i class="fas fa-chevron-right text-muted"></i>`;
+                    div.onclick = () => selectMemberForFund(id, m.name);
+                    container.appendChild(div);
+                }
+            });
+        }
+        document.getElementById('fundMemberSearch').addEventListener('keyup', renderFundSelectionList);
+
+        function selectMemberForFund(id, name) {
+            document.getElementById('fundMemberNameDisplay').value = name;
+            document.getElementById('fundMemberIdHidden').value = id;
+            bootstrap.Modal.getInstance(document.getElementById('selectMemberForFundModal')).hide();
+            new bootstrap.Modal(document.getElementById('addFundModal')).show();
+        }
+        
+        document.getElementById('addFundForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const mid = document.getElementById('fundMemberIdHidden').value;
+            if(!mid) return showToast("Error: No member selected", "danger");
+            
+            db.ref('transactions').push({ 
+                memberId: mid, 
+                amount: parseFloat(document.getElementById('fundAmount').value), 
+                date: document.getElementById('fundDate').value 
+            }).then(() => { 
+                showToast("Fund Added Successfully"); 
+                document.getElementById('addFundForm').reset(); 
+                document.getElementById('fundDate').value=new Date().toISOString().split('T')[0]; 
+                bootstrap.Modal.getInstance(document.getElementById('addFundModal')).hide(); 
+            });
+        });
+        // --- NEW FUND LOGIC END ---
+
+        // Member CRUD
         document.getElementById('addMemberForm').addEventListener('submit', e => {
             e.preventDefault();
             db.ref('members').push({ name: document.getElementById('mName').value, phone: document.getElementById('mPhone').value })
             .then(() => { showToast("Member Added"); document.getElementById('addMemberForm').reset(); bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide(); });
         });
 
-        document.getElementById('addFundForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const mid = memberNameMap[document.getElementById('fundMemberInput').value];
-            if(!mid) return showToast("Select valid member", "danger");
-            db.ref('transactions').push({ memberId: mid, amount: parseFloat(document.getElementById('fundAmount').value), date: document.getElementById('fundDate').value })
-            .then(() => { showToast("Fund Added"); document.getElementById('addFundForm').reset(); document.getElementById('fundDate').value=new Date().toISOString().split('T')[0]; bootstrap.Modal.getInstance(document.getElementById('addFundModal')).hide(); });
-        });
+        // Expense (FIXED)
+        function openExpenseModal() {
+            renderExpenseList();
+            new bootstrap.Modal(document.getElementById('expenseModal')).show();
+        }
 
         document.getElementById('addExpenseForm').addEventListener('submit', e => {
             e.preventDefault();
@@ -422,23 +506,38 @@
         }
 
         function renderAdminInfo() {
-            ['Name','Phone','bankName','accName','accNum'].forEach(k => {
+            ['Name','Phone','bankName','accName','accNum','routingNum','waNum'].forEach(k => {
                 const val = adminInfo[k=='Name'?'name':(k=='Phone'?'phone':k)] || '...';
-                if(document.getElementById('disp_admin'+k)) document.getElementById('disp_admin'+k).innerText = val; // for name/phone
-                else document.getElementById('disp_'+k).innerText = val; // for bank details
+                if(document.getElementById('disp_admin'+k)) document.getElementById('disp_admin'+k).innerText = val;
+                else if(document.getElementById('disp_'+k)) document.getElementById('disp_'+k).innerText = val;
             });
+            document.getElementById('disp_fbLink').href = adminInfo.fbLink || '#';
         }
+        
         function openEditAdminModal() {
             document.getElementById('in_adminName').value = adminInfo.name||'';
             document.getElementById('in_adminPhone').value = adminInfo.phone||'';
-            ['bankName','accName','accNum'].forEach(k => document.getElementById('in_'+k).value = adminInfo[k]||'');
+            ['bankName','accName','accNum','routingNum','fbLink','waNum'].forEach(k => document.getElementById('in_'+k).value = adminInfo[k]||'');
+            
+            // Set defaults if empty based on request
+            if(!document.getElementById('in_fbLink').value) document.getElementById('in_fbLink').value = 'https://www.facebook.com/share/1BGNxmfmxL/';
+            if(!document.getElementById('in_waNum').value) document.getElementById('in_waNum').value = '01890353575';
+            if(!document.getElementById('in_routingNum').value) document.getElementById('in_routingNum').value = '125270607';
+
             new bootstrap.Modal(document.getElementById('editAdminModal')).show();
         }
+
         document.getElementById('editAdminForm').addEventListener('submit', e => {
             e.preventDefault();
             db.ref('adminInfo').set({
-                name: document.getElementById('in_adminName').value, phone: document.getElementById('in_adminPhone').value,
-                bankName: document.getElementById('in_bankName').value, accName: document.getElementById('in_accName').value, accNum: document.getElementById('in_accNum').value
+                name: document.getElementById('in_adminName').value, 
+                phone: document.getElementById('in_adminPhone').value,
+                bankName: document.getElementById('in_bankName').value, 
+                accName: document.getElementById('in_accName').value, 
+                accNum: document.getElementById('in_accNum').value,
+                routingNum: document.getElementById('in_routingNum').value,
+                fbLink: document.getElementById('in_fbLink').value,
+                waNum: document.getElementById('in_waNum').value
             }).then(() => { showToast("Admin Info Saved"); bootstrap.Modal.getInstance(document.getElementById('editAdminModal')).hide(); });
         });
 
