@@ -1,3 +1,4 @@
+
 <!-- START OF FILE foundation apps admin.html -->
 <!DOCTYPE html>
 <html lang="en">
@@ -118,6 +119,7 @@
                     <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('list')"><i class="fas fa-users me-2 text-success"></i> Member List</a>
                     <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('search')"><i class="fas fa-search me-2 text-info"></i> Search</a>
                     <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('statement')"><i class="fas fa-file-alt me-2 text-warning"></i> Statement</a>
+                    <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('messages')"><i class="fas fa-envelope me-2 text-dark"></i> Messages</a>
                     <a href="#" class="list-group-item list-group-item-action p-3" onclick="switchView('about')"><i class="fas fa-info-circle me-2 text-dark"></i> Admin Info</a>
                     <a href="#" class="list-group-item list-group-item-action p-3 text-danger fw-bold" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
                 </div>
@@ -135,21 +137,28 @@
                 </div>
             </div>
 
-            <div class="notice-manager-card shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold m-0"><i class="fas fa-bullhorn me-1"></i> Notice Board</h6>
-                    <button class="btn btn-sm btn-outline-dark bg-white border-0 shadow-sm" onclick="openNoticeManagerModal()">Manage</button>
+            <div class="container mb-3">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="notice-manager-card shadow-sm h-100 m-0 text-center" onclick="openNoticeManagerModal()" style="cursor: pointer;">
+                            <i class="fas fa-bullhorn fa-2x mb-2 text-warning"></i><br>
+                            <span class="fw-bold text-dark">Notices</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-white p-3 rounded-3 shadow-sm h-100 text-center" onclick="switchView('messages')" style="cursor: pointer;">
+                            <i class="fas fa-inbox fa-2x mb-2 text-primary"></i><br>
+                            <span class="fw-bold text-dark">Inbox</span>
+                        </div>
+                    </div>
                 </div>
-                <p class="small fst-italic mb-2" id="currentNoticeHome">Loading...</p>
-                <button class="btn btn-sm btn-warning w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#addNoticeModal"><i class="fas fa-plus-circle"></i> Post Notice</button>
             </div>
 
             <div class="container mb-3">
+                <h6 class="text-muted fw-bold ps-2 mb-2">QUICK ACTIONS</h6>
                 <div class="row g-2">
-                    <!-- ADD FUND BUTTON UPDATED -->
                     <div class="col-4"><button class="btn action-btn btn-fund w-100 shadow-sm" onclick="openFundMemberSelect()"><i class="fas fa-hand-holding-dollar fa-lg mb-1"></i><br>Add Fund</button></div>
                     <div class="col-4"><button class="btn action-btn btn-member w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#addMemberModal"><i class="fas fa-user-plus fa-lg mb-1"></i><br>Member</button></div>
-                    <!-- EXPENSE BUTTON FIXED -->
                     <div class="col-4"><button class="btn action-btn btn-expense w-100 shadow-sm" onclick="openExpenseModal()"><i class="fas fa-file-invoice-dollar fa-lg mb-1"></i><br>Expense</button></div>
                 </div>
             </div>
@@ -172,6 +181,16 @@
                 </div>
             </div>
             <div id="searchResultsContainer"></div>
+        </div>
+
+        <!-- VIEW: MESSAGES -->
+        <div id="viewMessages" class="view-section">
+            <div class="container mt-3">
+                <h6 class="text-muted fw-bold mb-3 ps-2 border-start border-4 border-primary">&nbsp;USER MESSAGES</h6>
+                <div id="messagesContainer">
+                    <div class="text-center text-muted mt-5">Loading...</div>
+                </div>
+            </div>
         </div>
 
         <!-- VIEW: STATEMENT -->
@@ -225,12 +244,15 @@
     <div class="modal fade" id="addNoticeModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning"><h6 class="modal-title fw-bold">POST NOTICE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addNoticeForm"><textarea class="form-control mb-3" id="noticeMessage" required placeholder="Notice..."></textarea><input type="date" class="form-control mb-3" id="noticeDate" required><button type="submit" class="btn btn-dark w-100">Publish</button></form></div></div></div></div>
 
     <!-- Manage Notices -->
-    <div class="modal fade" id="manageNoticesModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-dark text-white"><h6 class="modal-title">MANAGE NOTICES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light" id="adminNoticeListContainer"></div></div></div></div>
+    <div class="modal fade" id="manageNoticesModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-dark text-white"><h6 class="modal-title">MANAGE NOTICES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light">
+        <div class="p-3"><button class="btn btn-warning w-100 fw-bold mb-3" data-bs-toggle="modal" data-bs-target="#addNoticeModal"><i class="fas fa-plus-circle"></i> Post New Notice</button></div>
+        <div id="adminNoticeListContainer" class="px-3"></div>
+    </div></div></div></div>
 
     <!-- Add Member -->
     <div class="modal fade" id="addMemberModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">NEW MEMBER</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="addMemberForm"><input type="text" class="form-control mb-3" id="mName" required placeholder="Name"><input type="tel" class="form-control mb-3" id="mPhone" required placeholder="Mobile"><button type="submit" class="btn btn-primary-custom text-white">Save</button></form></div></div></div></div>
 
-    <!-- NEW: Select Member for Fund -->
+    <!-- Select Member for Fund -->
     <div class="modal fade" id="selectMemberForFundModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-success text-white"><h6 class="modal-title">SELECT MEMBER FOR FUND</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light">
         <div class="input-group mb-3"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span><input type="text" class="form-control" id="fundMemberSearch" placeholder="Search member..."></div>
         <div id="fundMemberListContainer"></div>
@@ -249,28 +271,47 @@
         </form>
     </div></div></div></div>
 
-    <!-- Expense Modal (Fixed) -->
+    <!-- Expense Modal -->
     <div class="modal fade" id="expenseModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header bg-danger"><h6 class="modal-title text-white">EXPENSES</h6><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><form id="addExpenseForm" class="card p-3 mb-3 border-0 shadow-sm"><div class="row g-2"><div class="col-6"><input type="number" class="form-control" id="expAmount" required placeholder="Tk"></div><div class="col-6"><input type="date" class="form-control" id="expDate" required></div><div class="col-12"><input type="text" class="form-control" id="expReason" required placeholder="Reason"></div><button type="submit" class="btn btn-danger w-100 mt-2">Add Expense</button></div></form><div id="expenseListContainer"></div></div></div></div></div>
 
     <!-- Member Details/Edit -->
     <div class="modal fade" id="memberDetailsModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">DETAILS & EDIT</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div class="text-center p-3 mb-3 bg-white rounded shadow-sm"><h4 id="detailName" class="fw-bold">...</h4><div id="detailPhone" class="text-muted small">...</div><span class="text-primary small" onclick="toggleEditMemberMode()" style="cursor:pointer"><i class="fas fa-pen"></i> Edit</span><div id="editMemberFormDiv" class="d-none mt-2 p-2 bg-light border"><input id="editMName" class="form-control mb-1"><input id="editMPhone" class="form-control mb-1"><button onclick="saveMemberEdit()" class="btn btn-success btn-sm w-100">Update</button></div><hr><h2 class="text-success fw-bold">Tk. <span id="detailTotal">0</span></h2></div><div id="transactionHistory"></div></div></div></div></div>
 
-    <!-- Edit Admin (Updated Fields) -->
+    <!-- Edit Admin -->
     <div class="modal fade" id="editAdminModal"><div class="modal-dialog modal-fullscreen"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">EDIT PROFILE</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="editAdminForm">
         <div class="mb-3"><label>Name</label><input type="text" class="form-control" id="in_adminName"></div>
         <div class="mb-3"><label>Mobile (bKash Personal)</label><input type="text" class="form-control" id="in_adminPhone"></div>
-        
         <div class="mb-3"><label>Facebook Profile Link</label><input type="text" class="form-control" id="in_fbLink" placeholder="https://facebook.com/..."></div>
         <div class="mb-3"><label>WhatsApp Number</label><input type="text" class="form-control" id="in_waNum" placeholder="018..."></div>
-
         <hr>
         <div class="mb-2"><label>Bank Name</label><input type="text" class="form-control" id="in_bankName"></div>
         <div class="mb-2"><label>Account Name</label><input type="text" class="form-control" id="in_accName"></div>
         <div class="mb-2"><label>Account Number</label><input type="text" class="form-control" id="in_accNum"></div>
         <div class="mb-2"><label>Routing Number</label><input type="text" class="form-control" id="in_routingNum"></div>
-        
         <button type="submit" class="btn btn-primary w-100 mt-3">Save Changes</button>
     </form></div></div></div></div>
+
+    <!-- NEW: CONFIRM DELETE MODAL -->
+    <div class="modal fade" id="deleteConfirmModal" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h6 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle"></i> SECURITY CHECK</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-dark fw-bold mb-3">Are you sure you want to delete this member? This action cannot be undone.</p>
+                    <label class="small text-muted mb-1">Confirm Admin Password</label>
+                    <input type="password" class="form-control" id="deleteConfirmPass" placeholder="Enter Login Password">
+                    <div class="text-danger small mt-2" id="deleteErrorMsg"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="executeDeleteWithAuth()">Confirm Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast -->
     <div class="toast-container"><div id="customToast" class="toast align-items-center border-0 shadow-lg" role="alert"><div class="d-flex"><div class="toast-body fw-bold" id="toastMessage"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div></div>
@@ -317,7 +358,11 @@
         function logout() { auth.signOut(); }
 
         // APP LOGIC
-        let allMembers={}, allTransactions={}, allExpenses={}, allNotices={}, adminInfo={}, currentDetailMemberId=null;
+        let allMembers={}, allTransactions={}, allExpenses={}, allNotices={}, adminInfo={}, allMessages={};
+        let currentDetailMemberId=null;
+        
+        // VARIABLE TO STORE ID TO DELETE
+        let memberToDeleteId = null;
 
         function loadAllData() {
             const today = new Date().toISOString().split('T')[0];
@@ -326,8 +371,9 @@
             db.ref('members').on('value', snap => { allMembers = snap.val() || {}; renderDataDependants(); });
             db.ref('transactions').on('value', snap => { allTransactions = snap.val() || {}; renderDataDependants(); if(currentDetailMemberId) showMiniStatement(currentDetailMemberId); });
             db.ref('expenses').on('value', snap => { allExpenses = snap.val() || {}; renderDataDependants(); renderExpenseList(); });
-            db.ref('notices').on('value', snap => { allNotices = snap.val() || {}; renderHomeNotice(); renderNoticeList(); });
+            db.ref('notices').on('value', snap => { allNotices = snap.val() || {}; renderNoticeList(); });
             db.ref('adminInfo').on('value', snap => { adminInfo = snap.val() || {}; renderAdminInfo(); });
+            db.ref('messages').on('value', snap => { allMessages = snap.val() || {}; renderMessages(); });
         }
 
         function renderDataDependants() {
@@ -355,16 +401,87 @@
                 const m = allMembers[id];
                 let tot = 0;
                 for(let tid in allTransactions) if(allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount);
+                
                 const html = `
-                    <div class="member-card d-flex justify-content-between align-items-center" onclick="showMiniStatement('${id}')">
-                        <div><h6 class="mb-0 fw-bold text-dark">${m.name}</h6><small class="text-muted">${m.phone}</small></div>
-                        <div class="text-end"><span class="fw-bold text-success">Tk. ${tot.toLocaleString()}</span></div>
+                    <div class="member-card d-flex justify-content-between align-items-center">
+                        <div onclick="showMiniStatement('${id}')" style="flex:1">
+                            <h6 class="mb-0 fw-bold text-dark">${m.name}</h6>
+                            <small class="text-muted">${m.phone}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="fw-bold text-success">Tk. ${tot.toLocaleString()}</span>
+                            <button class="btn btn-sm btn-outline-danger border-0" onclick="initiateDelete('${id}')"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>`;
                 cont.innerHTML += html;
                 if(m.name.toLowerCase().includes(searchVal)) searchCont.innerHTML += html;
                 count++;
             });
             document.getElementById('memberCountList').innerText = count;
+        }
+
+        // --- NEW DELETE LOGIC START ---
+        
+        // 1. Triggered when trash icon is clicked
+        function initiateDelete(id) {
+            memberToDeleteId = id; // Store the ID
+            document.getElementById('deleteConfirmPass').value = ''; // Clear input
+            document.getElementById('deleteErrorMsg').innerText = ''; // Clear errors
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show(); // Show modal
+        }
+
+        // 2. Triggered when "Confirm Delete" button is clicked in modal
+        function executeDeleteWithAuth() {
+            const password = document.getElementById('deleteConfirmPass').value;
+            const user = firebase.auth().currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+
+            document.getElementById('deleteErrorMsg').innerText = 'Verifying...';
+
+            user.reauthenticateWithCredential(credential).then(() => {
+                // Password Correct -> Delete Data
+                db.ref('members/' + memberToDeleteId).remove().then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    showToast("Member Deleted Successfully");
+                    memberToDeleteId = null;
+                });
+            }).catch((error) => {
+                // Password Incorrect
+                document.getElementById('deleteErrorMsg').innerText = "Incorrect Password! Please try again.";
+            });
+        }
+        // --- NEW DELETE LOGIC END ---
+
+        function renderMessages() {
+            const cont = document.getElementById('messagesContainer');
+            cont.innerHTML = '';
+            const arr = [];
+            for(let id in allMessages) arr.push({id, ...allMessages[id]});
+            
+            if(arr.length === 0) {
+                cont.innerHTML = '<div class="text-center text-muted mt-5">No messages found.</div>';
+                return;
+            }
+
+            arr.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            arr.forEach(msg => {
+                const date = new Date(msg.date).toLocaleString();
+                cont.innerHTML += `
+                    <div class="bg-white p-3 mb-3 rounded shadow-sm">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <span class="fw-bold text-dark">${msg.name}</span> <small class="text-muted">(${msg.phone})</small>
+                            </div>
+                            <small class="text-muted" style="font-size:0.75rem">${date}</small>
+                        </div>
+                        <p class="mb-2 bg-light p-2 rounded small text-dark">${msg.message}</p>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-danger py-0" onclick="db.ref('messages/${msg.id}').remove()">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function renderStatementTable() {
@@ -377,7 +494,7 @@
             });
         }
 
-        // --- NEW FUND LOGIC START ---
+        // Fund Logic
         function openFundMemberSelect() {
             renderFundSelectionList();
             new bootstrap.Modal(document.getElementById('selectMemberForFundModal')).show();
@@ -424,7 +541,6 @@
                 bootstrap.Modal.getInstance(document.getElementById('addFundModal')).hide(); 
             });
         });
-        // --- NEW FUND LOGIC END ---
 
         // Member CRUD
         document.getElementById('addMemberForm').addEventListener('submit', e => {
@@ -433,7 +549,7 @@
             .then(() => { showToast("Member Added"); document.getElementById('addMemberForm').reset(); bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide(); });
         });
 
-        // Expense (FIXED)
+        // Expense
         function openExpenseModal() {
             renderExpenseList();
             new bootstrap.Modal(document.getElementById('expenseModal')).show();
@@ -462,12 +578,6 @@
             .then(() => { showToast("Notice Published"); document.getElementById('addNoticeForm').reset(); bootstrap.Modal.getInstance(document.getElementById('addNoticeModal')).hide(); });
         });
 
-        function renderHomeNotice() {
-            const arr = []; for(let id in allNotices) arr.push(allNotices[id]);
-            arr.sort((a,b)=>new Date(b.date)-new Date(a.date));
-            document.getElementById('currentNoticeHome').innerText = arr.length ? arr[0].message.substring(0,50)+"..." : "No notices.";
-        }
-        
         function renderNoticeList() {
             const c = document.getElementById('adminNoticeListContainer'); c.innerHTML = '';
             const arr = []; for(let id in allNotices) arr.push({id,...allNotices[id]});
@@ -519,7 +629,6 @@
             document.getElementById('in_adminPhone').value = adminInfo.phone||'';
             ['bankName','accName','accNum','routingNum','fbLink','waNum'].forEach(k => document.getElementById('in_'+k).value = adminInfo[k]||'');
             
-            // Set defaults if empty based on request
             if(!document.getElementById('in_fbLink').value) document.getElementById('in_fbLink').value = 'https://www.facebook.com/share/1BGNxmfmxL/';
             if(!document.getElementById('in_waNum').value) document.getElementById('in_waNum').value = '01890353575';
             if(!document.getElementById('in_routingNum').value) document.getElementById('in_routingNum').value = '125270607';
@@ -550,11 +659,57 @@
         }
         document.getElementById('searchInput').addEventListener('keyup', renderMembersLists);
         function showToast(m,t='success') { const el=document.getElementById('customToast'); document.getElementById('toastMessage').innerText=m; el.className=`toast align-items-center border-0 shadow-lg text-white bg-${t}`; new bootstrap.Toast(el).show(); }
+        
+        // Professional PDF Generation (Admin Side)
         function downloadStatementPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("Pocchim Charbata Statement", 14, 15);
-            doc.autoTable({ html: '#statementTable', startY: 25 });
-            doc.save("Statement.pdf");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(16);
+            doc.setTextColor(44, 62, 80);
+            doc.setFont("helvetica", "bold");
+            const title = "Pocchim Charbata Youth Social Welfare Organization";
+            const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+            const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
+            doc.text(title, textOffset, 15);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100);
+            const addr = "Pocchim Charbata, Subarnachar, Noakhali";
+            const addrWidth = doc.getStringUnitWidth(addr) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+            doc.text(addr, (doc.internal.pageSize.width - addrWidth) / 2, 21);
+
+            let startY = 30;
+
+            const ids = Object.keys(allMembers).sort((a,b) => allMembers[a].name.localeCompare(allMembers[b].name));
+            const tableData = [];
+            let serial = 1;
+            let grandTotal = 0;
+
+            ids.forEach(id => {
+                const m = allMembers[id];
+                let mTotal = 0;
+                for(let tid in allTransactions) if(allTransactions[tid].memberId === id) mTotal += parseFloat(allTransactions[tid].amount);
+                grandTotal += mTotal;
+                tableData.push([serial++, m.name, m.phone, mTotal.toLocaleString()]);
+            });
+
+            doc.autoTable({ 
+                head: [['#', 'Name', 'Phone', 'Total (Tk)']],
+                body: tableData,
+                startY: startY,
+                theme: 'grid',
+                headStyles: { fillColor: [0, 97, 255], textColor: 255, halign: 'center' },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 },
+                    3: { halign: 'right', fontStyle: 'bold' }
+                },
+                foot: [['', 'Total Members: ' + ids.length, 'Grand Total:', grandTotal.toLocaleString()]],
+                footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'right' }
+            });
+            doc.save("Admin_Statement.pdf");
         }
     </script>
 </body>
