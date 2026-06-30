@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Admin Panel — পশ্চিম চরবাটা</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a56db;
+            --primary-dark: #1341b0;
+            --primary-light: #e8f0fe;
+            --accent: #0ea5e9;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: var(--bg);
+            font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+            padding-bottom: 24px;
+            overflow-x: hidden;
+            color: var(--text);
+            margin: 0;
+        }
+        /* Hide any stray Bootstrap offcanvas toggle */
+        .offcanvas-backdrop ~ * .offcanvas-toggle,
+        [data-bs-toggle="offcanvas"]:not(.menu-btn) { display: none !important; }
+
+        /* ===== LOGIN SCREEN ===== */
+        #authScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: #0f172a;
+            overflow: hidden;
+        }
+        .login-bg-decoration {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+        }
+        .login-bg-decoration.d1 { width: 300px; height: 300px; background: #1a56db; top: -80px; right: -80px; }
+        .login-bg-decoration.d2 { width: 250px; height: 250px; background: #0ea5e9; bottom: -60px; left: -60px; }
+        .login-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            padding: 0 20px;
+        }
+        .login-logo-wrap {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-logo-wrap img {
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            border: 3px solid rgba(255,255,255,0.15);
+            object-fit: cover;
+        }
+        .login-logo-wrap h2 {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 12px 0 4px;
+            line-height: 1.4;
+        }
+        .login-logo-wrap p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.78rem;
+            margin: 0;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 28px 24px;
+            backdrop-filter: blur(20px);
+        }
+        .login-box h4 {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+        .login-box p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.78rem;
+            margin: 0 0 24px;
+        }
+        .login-field {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .login-field i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+        }
+        .login-field input {
+            width: 100%;
+            padding: 14px 16px 14px 42px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+        .login-field input::placeholder { color: rgba(255,255,255,0.35); }
+        .login-field input:focus { border-color: var(--accent); background: rgba(255,255,255,0.12); }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .login-btn:active { opacity: 0.85; }
+        #loginError {
+            color: #fca5a5;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        /* ===== MAIN APP ===== */
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #0f2027 0%, #1a56db 100%);
+            padding: 0 0 16px 0;
+            position: relative;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px 12px;
+            gap: 12px;
+        }
+        .header-logo {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .header-text { flex: 1; }
+        .header-text h1 { color: #fff; font-size: 0.85rem; font-weight: 700; margin: 0; line-height: 1.3; }
+        .header-text p { color: rgba(255,255,255,0.6); font-size: 0.7rem; margin: 2px 0 0; }
+        .menu-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: #fff;
+            border-radius: 20px;
+            margin: 0 16px;
+            padding: 22px 20px;
+            box-shadow: 0 8px 30px rgba(26,86,219,0.15);
+            position: relative;
+            z-index: 10;
+        }
+        .balance-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+        .balance-amount { font-size: 2.4rem; font-weight: 800; color: var(--text); line-height: 1.1; margin: 4px 0 10px; }
+        .balance-amount .currency { font-size: 1.2rem; color: var(--text-muted); font-weight: 600; }
+        .balance-stats { display: flex; border-top: 1px solid var(--border); padding-top: 12px; }
+        .stat-item { flex: 1; text-align: center; }
+        .stat-item:not(:last-child) { border-right: 1px solid var(--border); }
+        .stat-label { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .stat-val { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+
+        /* Quick Actions */
+        .section-label {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px;
+        }
+        .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .quick-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .quick-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .quick-card:active { transform: scale(0.95); }
+        .quick-card .qc-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.3rem;
+        }
+        .quick-card .qc-label { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+
+        /* Views */
+        .view-section { display: none; animation: fadeUp 0.25s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        .page-hdr {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 0 14px;
+        }
+        .page-hdr h5 { font-size: 1rem; font-weight: 800; color: var(--text); margin: 0; }
+
+        /* Member Cards */
+        .member-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 13px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+        .member-avatar {
+            width: 42px; height: 42px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary);
+            font-size: 1rem; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .member-info { flex: 1; padding: 0 10px; min-width: 0; }
+        .member-info h6 { font-size: 0.9rem; font-weight: 700; margin: 0 0 2px; }
+        .member-info small { font-size: 0.73rem; color: var(--text-muted); }
+        .member-meta { text-align: right; }
+        .member-meta .amount { font-size: 0.88rem; font-weight: 700; color: var(--success); }
+        .arrears-badge {
+            display: inline-block;
+            background: #fee2e2; color: var(--danger);
+            font-size: 0.62rem; font-weight: 700;
+            padding: 2px 7px; border-radius: 20px; margin-top: 3px;
+        }
+        .arrears-badge.clear { background: #d1fae5; color: var(--success); }
+        .icon-btn {
+            width: 34px; height: 34px;
+            border: none; background: #fee2e2; color: var(--danger);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; margin-left: 8px; flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+
+        /* Search */
+        .search-wrap { position: relative; margin-bottom: 14px; }
+        .search-wrap input {
+            width: 100%; padding: 13px 16px 13px 44px;
+            border-radius: 14px; border: 1.5px solid var(--border);
+            font-size: 0.9rem; background: #fff; outline: none;
+            transition: border 0.2s; font-family: inherit;
+        }
+        .search-wrap input:focus { border-color: var(--primary); }
+        .search-wrap i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* Statement Table */
+        .stmt-table {
+            width: 100%; border-collapse: collapse; background: #fff;
+            border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .stmt-table thead th {
+            background: var(--primary); color: #fff;
+            font-size: 0.75rem; font-weight: 700; padding: 11px 12px;
+        }
+        .stmt-table tbody td { padding: 10px 12px; font-size: 0.83rem; border-bottom: 1px solid var(--border); }
+        .stmt-table tbody tr:last-child td { border-bottom: none; }
+
+        /* Admin Info */
+        .info-block {
+            background: #fff; border-radius: 16px; padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .info-row { padding: 11px 0; border-bottom: 1px solid var(--border); }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 3px; }
+        .info-val { font-size: 0.95rem; font-weight: 700; color: var(--text); word-break: break-all; }
+
+        /* Form fields */
+        .form-field { margin-bottom: 14px; }
+        .form-field label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-field input, .form-field textarea, .form-field select {
+            width: 100%; padding: 12px 14px;
+            border-radius: 12px; border: 1.5px solid var(--border);
+            font-size: 0.9rem; background: #fff; outline: none;
+            transition: border 0.2s; font-family: inherit;
+        }
+        .form-field input:focus, .form-field textarea:focus { border-color: var(--primary); }
+        .btn-primary-custom {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; border: none; border-radius: 13px;
+            font-size: 0.95rem; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s; font-family: inherit;
+        }
+        .btn-primary-custom:active { opacity: 0.85; }
+        .btn-danger-custom {
+            width: 100%; padding: 12px; background: var(--danger);
+            color: #fff; border: none; border-radius: 13px;
+            font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+
+        /* Message Card */
+        .msg-card {
+            background: #fff; border-radius: 14px; padding: 16px;
+            margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+
+        /* Notice card */
+        .notice-item {
+            background: #fff; border-radius: 12px; padding: 12px 14px;
+            margin-bottom: 8px; display: flex; align-items: flex-start;
+            gap: 10px; border: 1px solid var(--border);
+        }
+        .notice-item-text { flex: 1; font-size: 0.85rem; }
+        .notice-item-date { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; width: 90%; max-width: 380px; }
+
+        /* Modal header */
+        .modal-header-custom {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; padding: 18px 20px;
+        }
+        .modal-header-custom .btn-close { filter: invert(1); }
+
+        .tx-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; border-bottom: 1px solid var(--border); background: #fff;
+        }
+        .tx-item:last-child { border-bottom: none; }
+
+        /* Offcanvas menu */
+        .menu-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 20px; border-bottom: 1px solid var(--border);
+            font-size: 0.92rem; font-weight: 600; color: var(--text);
+            cursor: pointer; text-decoration: none;
+            transition: background 0.15s;
+        }
+        .menu-item:hover { background: var(--primary-light); color: var(--primary); }
+        .menu-item .mi-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+        }
+        .menu-item.danger { color: var(--danger); }
+        .menu-item.danger .mi-icon { background: #fee2e2; color: var(--danger); }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="authScreen">
+    <div class="login-bg-decoration d1"></div>
+    <div class="login-bg-decoration d2"></div>
+    <div class="login-card">
+        <div class="login-logo-wrap">
+            <img src="https://i.ibb.co.com/C5wgVtJw/file-00000000d3947208a4159c45de8af9e3.png" alt="Logo" onerror="this.style.display='none'">
+            <h2>পশ্চিম চরবাটা যুব সমাজ কল্যাণ সংগঠন</h2>
+            <p>Admin Panel — Secure Access</p>
+        </div>
+        <div class="login-box">
+            <h4>Welcome Back</h4>
+            <p>Sign in to continue</p>
+            <form id="loginForm">
+                <div class="login-field">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="adminEmail" placeholder="Email address" required autocomplete="email">
+                </div>
+                <div class="login-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="adminPass" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </button>
+            </form>
+            <div id="loginError"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="mainApp" style="display:none;">
+
+    <!-- Header -->
+    <div class="app-header">
+        <div class="header-top">
+            <img src="https://i.ibb.co.com/C5wgVtJw/file-00000000d3947208a4159c45de8af9e3.png" class="header-logo" alt="Logo" onerror="this.style.display='none'">
+            <div class="header-text">
+                <h1>Pocchim Charbata Youth Social Welfare Org.</h1>
+                <p>Admin Panel</p>
+            </div>
+            <button class="menu-btn" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Offcanvas Menu -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMenu" style="max-width:300px;">
+        <div class="offcanvas-header border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <img src="https://i.ibb.co.com/C5wgVtJw/file-00000000d3947208a4159c45de8af9e3.png" style="width:36px;height:36px;border-radius:10px;object-fit:cover;" onerror="this.style.display='none'">
+                <div>
+                    <div style="font-size:0.85rem;font-weight:700;">Admin Menu</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">Pocchim Charbata</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <a href="#" class="menu-item" onclick="switchView('home')">
+                <div class="mi-icon" style="background:#e8f0fe;color:var(--primary);"><i class="fas fa-home"></i></div> Home
+            </a>
+            <a href="#" class="menu-item" onclick="switchView('list')">
+                <div class="mi-icon" style="background:#d1fae5;color:var(--success);"><i class="fas fa-users"></i></div> Member List
+            </a>
+            <a href="#" class="menu-item" onclick="switchView('search')">
+                <div class="mi-icon" style="background:#e0f2fe;color:var(--accent);"><i class="fas fa-search"></i></div> Search
+            </a>
+            <a href="#" class="menu-item" onclick="switchView('statement')">
+                <div class="mi-icon" style="background:#fef3c7;color:var(--warning);"><i class="fas fa-file-alt"></i></div> Statement
+            </a>
+            <a href="#" class="menu-item" onclick="switchView('messages')">
+                <div class="mi-icon" style="background:#f0fdf4;color:#059669;"><i class="fas fa-inbox"></i></div> Messages
+            </a>
+            <a href="#" class="menu-item" onclick="switchView('about')">
+                <div class="mi-icon" style="background:#f8fafc;color:var(--text-muted);"><i class="fas fa-info-circle"></i></div> Admin Info
+            </a>
+            <a href="#" class="menu-item danger" onclick="logout()">
+                <div class="mi-icon"><i class="fas fa-sign-out-alt"></i></div> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== HOME VIEW ===== -->
+    <div id="viewHome" class="view-section active">
+        <div style="height:16px;"></div>
+        <div class="balance-card">
+            <div class="balance-label">Current Net Balance</div>
+            <div class="balance-amount"><span class="currency">Tk.</span> <span id="totalFund">—</span></div>
+            <div class="balance-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Income</div>
+                    <div class="stat-val text-success"><span id="totalIn">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Expense</div>
+                    <div class="stat-val text-danger"><span id="totalOut">0</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Members</div>
+                    <div class="stat-val text-primary"><span id="totalMembers">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-4 mt-4">
+            <!-- Notices & Inbox -->
+            <p class="section-label">Manage</p>
+            <div class="quick-grid mb-3">
+                <div class="quick-card" onclick="openNoticeManagerModal()">
+                    <div class="qc-icon" style="background:#fef3c7;"><i class="fas fa-bullhorn" style="color:var(--warning);"></i></div>
+                    <div class="qc-label">Notices</div>
+                </div>
+                <div class="quick-card" onclick="switchView('messages')">
+                    <div class="qc-icon" style="background:#e0f2fe;"><i class="fas fa-inbox" style="color:var(--accent);"></i></div>
+                    <div class="qc-label">Inbox</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <p class="section-label">Quick Actions</p>
+            <div class="quick-grid-3">
+                <div class="quick-card" onclick="openFundMemberSelect()">
+                    <div class="qc-icon" style="background:#d1fae5;"><i class="fas fa-plus-circle" style="color:var(--success);"></i></div>
+                    <div class="qc-label">Add Fund</div>
+                </div>
+                <div class="quick-card" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                    <div class="qc-icon" style="background:#dbeafe;"><i class="fas fa-user-plus" style="color:var(--primary);"></i></div>
+                    <div class="qc-label">Member</div>
+                </div>
+                <div class="quick-card" onclick="openExpenseModal()">
+                    <div class="qc-icon" style="background:#fee2e2;"><i class="fas fa-file-invoice-dollar" style="color:var(--danger);"></i></div>
+                    <div class="qc-label">Expense</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MEMBER LIST VIEW ===== -->
+    <div id="viewList" class="view-section">
+        <div class="px-4 pt-3">
+            <div class="page-hdr">
+                <h5>Members List</h5>
+                <span class="badge rounded-pill" style="background:var(--primary);" id="memberCountList">0</span>
+            </div>
+            <div id="fullMembersContainer"></div>
+        </div>
+    </div>
+
+    <!-- ===== SEARCH VIEW ===== -->
+    <div id="viewSearch" class="view-section">
+        <div class="px-4 pt-3">
+            <div class="page-hdr"><h5>Search Member</h5></div>
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name...">
+            </div>
+            <div id="searchResultsContainer">
+                <div class="text-center text-muted mt-5 py-5">
+                    <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
+                    <p>Start typing to find a member</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STATEMENT VIEW ===== -->
+    <div id="viewStatement" class="view-section">
+        <div class="px-4 pt-3">
+            <div class="page-hdr">
+                <h5>Statement</h5>
+                <button class="btn btn-sm rounded-pill px-3 fw-bold" style="background:var(--primary);color:#fff;" onclick="downloadStatementPDF()">
+                    <i class="fas fa-download me-1"></i>PDF
+                </button>
+            </div>
+            <div style="overflow-x:auto;border-radius:14px;">
+                <table class="stmt-table">
+                    <thead><tr><th>#</th><th>Name</th><th>Phone</th><th class="text-end">Total</th><th class="text-center">Arrears</th></tr></thead>
+                    <tbody id="statementTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MESSAGES VIEW ===== -->
+    <div id="viewMessages" class="view-section">
+        <div class="px-4 pt-3">
+            <div class="page-hdr"><h5>User Messages</h5></div>
+            <div id="messagesContainer">
+                <div class="text-center text-muted mt-5">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN INFO VIEW ===== -->
+    <div id="viewAbout" class="view-section">
+        <div class="px-4 pt-3">
+            <div class="page-hdr">
+                <h5>Admin Info</h5>
+                <button class="btn btn-sm rounded-pill px-3 fw-bold" style="background:var(--primary);color:#fff;" onclick="openEditAdminModal()">
+                    <i class="fas fa-pen me-1"></i>Edit
+                </button>
+            </div>
+            <div class="info-block">
+                <div class="text-center mb-4">
+                    <div style="width:68px;height:68px;background:var(--primary-light);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                        <i class="fas fa-user-shield fa-2x" style="color:var(--primary);"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0" id="disp_adminName">—</h5>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">bKash (Personal)</div>
+                    <div class="info-val text-primary" id="disp_adminPhone">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">Bank Name</div>
+                    <div class="info-val" id="disp_bankName">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">Account Name</div>
+                    <div class="info-val" id="disp_accName">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">Account Number</div>
+                    <div class="info-val font-monospace" id="disp_accNum">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-lbl">Routing Number</div>
+                    <div class="info-val font-monospace" id="disp_routingNum">—</div>
+                </div>
+                <div class="info-row">
+                    <div class="d-flex gap-2 mt-1">
+                        <a href="#" id="disp_fbLink" target="_blank" class="btn btn-sm flex-fill fw-bold" style="border-radius:10px;background:#1877f2;color:#fff;">
+                            <i class="fab fa-facebook me-1"></i>Facebook
+                        </a>
+                        <a href="#" id="disp_waLink" target="_blank" class="btn btn-sm flex-fill fw-bold" style="border-radius:10px;background:#25d366;color:#fff;">
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addMemberModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Add New Member</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addMemberForm">
+                    <div class="form-field">
+                        <label>Full Name</label>
+                        <input type="text" id="memberName" placeholder="Enter full name" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="memberPhone" placeholder="01XXXXXXXXX" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Join Date (চাঁদা শুরু)</label>
+                        <input type="date" id="memberJoinDate">
+                    </div>
+                    <button type="submit" class="btn-primary-custom"><i class="fas fa-plus me-2"></i>Add Member</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Select Member for Fund Modal -->
+<div class="modal fade" id="selectMemberForFundModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold"><i class="fas fa-users me-2"></i>Select Member</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:var(--bg);">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="fundMemberSearch" placeholder="Search member...">
+                </div>
+                <div id="fundMemberListContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Fund Modal -->
+<div class="modal fade" id="addFundModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold"><i class="fas fa-hand-holding-dollar me-2"></i>Add Fund</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addFundForm">
+                    <div class="form-field">
+                        <label>Member</label>
+                        <input type="text" id="fundMemberNameDisplay" readonly style="background:#f8f9fa;font-weight:700;">
+                        <input type="hidden" id="fundMemberIdHidden">
+                    </div>
+                    <div class="form-field">
+                        <label>Amount (Tk)</label>
+                        <input type="number" id="fundAmount" placeholder="e.g. 100" required min="1">
+                    </div>
+                    <div class="form-field">
+                        <label>Date</label>
+                        <input type="date" id="fundDate" required>
+                    </div>
+                    <button type="submit" class="btn-primary-custom"><i class="fas fa-check me-2"></i>Add Fund</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="addExpenseModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header" style="background:#ef4444;color:#fff;padding:18px 20px;">
+                <h6 class="modal-title fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>Add Expense</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addExpenseForm">
+                    <div class="form-field">
+                        <label>Amount (Tk)</label>
+                        <input type="number" id="expAmount" placeholder="Amount" required min="1">
+                    </div>
+                    <div class="form-field">
+                        <label>Reason</label>
+                        <input type="text" id="expReason" placeholder="Describe the expense" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Date</label>
+                        <input type="date" id="expDate" required>
+                    </div>
+                    <button type="submit" class="btn-danger-custom"><i class="fas fa-check me-2"></i>Add Expense</button>
+                </form>
+                <hr>
+                <h6 class="fw-bold mb-2" style="font-size:0.85rem;">Expense History</h6>
+                <div id="adminExpenseList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Notices Modal -->
+<div class="modal fade" id="manageNoticesModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold"><i class="fas fa-bullhorn me-2"></i>Manage Notices</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:var(--bg);">
+                <div class="info-block mb-3">
+                    <form id="addNoticeForm">
+                        <div class="form-field">
+                            <label>New Notice</label>
+                            <textarea id="noticeText" rows="3" placeholder="Write notice here..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary-custom"><i class="fas fa-paper-plane me-2"></i>Publish Notice</button>
+                    </form>
+                </div>
+                <p class="section-label">Published Notices</p>
+                <div id="adminNoticeListContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Member Details Modal -->
+<div class="modal fade" id="memberDetailsModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold">Member Details</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:var(--bg);">
+                <div class="info-block text-center mb-3">
+                    <div style="width:64px;height:64px;background:var(--primary-light);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                        <i class="fas fa-user fa-2x" style="color:var(--primary);"></i>
+                    </div>
+                    <h4 id="detailName" class="fw-bold mb-0">—</h4>
+                    <p id="detailPhone" class="text-muted small mb-2">—</p>
+                    <div id="detailArrearsInfo" class="mb-3"></div>
+                    <span class="text-primary fw-bold" onclick="toggleEditMemberMode()" style="cursor:pointer;font-size:0.85rem;"><i class="fas fa-pen me-1"></i>Edit Member</span>
+                    <div id="editMemberFormDiv" class="d-none mt-3 p-3 bg-light rounded-3 text-start">
+                        <div class="form-field"><label>Name</label><input id="editMName" class="form-control"></div>
+                        <div class="form-field"><label>Phone</label><input id="editMPhone" class="form-control"></div>
+                        <div class="form-field"><label>Join Date</label><input type="date" id="editMJoinDate" class="form-control"></div>
+                        <button onclick="saveMemberEdit()" class="btn-primary-custom">Update</button>
+                    </div>
+                    <hr class="my-3">
+                    <p class="section-label mb-1">Total Contribution</p>
+                    <h2 class="fw-bold text-success">Tk. <span id="detailTotal">0</span></h2>
+                </div>
+                <p class="section-label mb-2 px-1">Transaction History</p>
+                <div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);" id="transactionHistory"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Admin Modal -->
+<div class="modal fade" id="editAdminModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h6 class="modal-title fw-bold"><i class="fas fa-pen me-2"></i>Edit Admin Profile</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:var(--bg);">
+                <div class="info-block">
+                    <form id="editAdminForm">
+                        <div class="form-field"><label>Admin Name</label><input type="text" id="in_adminName"></div>
+                        <div class="form-field"><label>Mobile (bKash Personal)</label><input type="text" id="in_adminPhone"></div>
+                        <div class="form-field"><label>Facebook Profile Link</label><input type="text" id="in_fbLink" placeholder="https://facebook.com/..."></div>
+                        <div class="form-field"><label>WhatsApp Number</label><input type="text" id="in_waNum" placeholder="018..."></div>
+                        <hr>
+                        <p class="section-label">Bank Details</p>
+                        <div class="form-field"><label>Bank Name</label><input type="text" id="in_bankName"></div>
+                        <div class="form-field"><label>Account Name</label><input type="text" id="in_accName"></div>
+                        <div class="form-field"><label>Account Number</label><input type="text" id="in_accNum"></div>
+                        <div class="form-field"><label>Routing Number</label><input type="text" id="in_routingNum"></div>
+                        <button type="submit" class="btn-primary-custom"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteConfirmModal" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header" style="background:var(--danger);color:#fff;padding:18px 20px;">
+                <h6 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Security Check</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="fw-bold mb-3" style="font-size:0.9rem;">Are you sure? This action cannot be undone.</p>
+                <div class="form-field">
+                    <label>Confirm Admin Password</label>
+                    <input type="password" id="deleteConfirmPass" placeholder="Enter your password">
+                </div>
+                <div class="text-danger small mt-1" id="deleteErrorMsg"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light border rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-3 fw-bold" onclick="executeDeleteWithAuth()">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container">
+    <div id="customToast" class="toast align-items-center border-0 shadow" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-bold" id="toastMessage"></div>
+            <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCGsoe7Pdt_lh-Hl1VHjPukjug-YZq6qJk",
+        authDomain: "pocchimcharbataapp.firebaseapp.com",
+        projectId: "pocchimcharbataapp",
+        storageBucket: "pocchimcharbataapp.firebasestorage.app",
+        messagingSenderId: "143592441304",
+        appId: "1:143592441304:web:8a26e243dfab0013ca1ead"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // ---- ARREARS CALCULATION ----
+    const ORG_START = new Date('2025-03-01');
+    const MONTHLY_FEE = 100;
+
+    function calcArrearsMonths(memberId, memberJoinDate) {
+        const startDate = memberJoinDate ? new Date(memberJoinDate) : new Date(ORG_START);
+        const effectiveStart = startDate > ORG_START ? startDate : new Date(ORG_START);
+        const now = new Date();
+        let totalMonths = (now.getFullYear() - effectiveStart.getFullYear()) * 12
+                        + (now.getMonth() - effectiveStart.getMonth()) + 1;
+        if (totalMonths < 0) totalMonths = 0;
+        const expected = totalMonths * MONTHLY_FEE;
+        let paid = 0;
+        for (let tid in allTransactions) {
+            if (allTransactions[tid].memberId === memberId) paid += parseFloat(allTransactions[tid].amount) || 0;
+        }
+        const due = expected - paid;
+        const dueMonths = due > 0 ? Math.ceil(due / MONTHLY_FEE) : 0;
+        return { dueMonths, due: Math.max(0, due), paid, expected };
+    }
+
+    // ---- AUTH ----
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadAllData();
+        } else {
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', e => {
+        e.preventDefault();
+        document.getElementById('loginError').innerText = '';
+        auth.signInWithEmailAndPassword(
+            document.getElementById('adminEmail').value,
+            document.getElementById('adminPass').value
+        ).catch(() => {
+            document.getElementById('loginError').innerText = '⚠ Invalid email or password.';
+        });
+    });
+
+    function logout() { auth.signOut(); }
+
+    // ---- DATA ----
+    let allMembers = {}, allTransactions = {}, allExpenses = {}, allNotices = {}, adminInfo = {}, allMessages = {};
+    let currentDetailMemberId = null, memberToDeleteId = null;
+
+    function loadAllData() {
+        const today = new Date().toISOString().split('T')[0];
+        ['fundDate', 'expDate'].forEach(id => { const el = document.getElementById(id); if(el) el.value = today; });
+
+        db.ref('members').on('value', snap => { allMembers = snap.val() || {}; renderAll(); });
+        db.ref('transactions').on('value', snap => { allTransactions = snap.val() || {}; renderAll(); if(currentDetailMemberId) refreshMiniStatement(currentDetailMemberId); });
+        db.ref('expenses').on('value', snap => { allExpenses = snap.val() || {}; calcTotals(); renderAdminExpenseList(); });
+        db.ref('notices').on('value', snap => { allNotices = snap.val() || {}; renderNoticeList(); });
+        db.ref('adminInfo').on('value', snap => { adminInfo = snap.val() || {}; renderAdminInfo(); });
+        db.ref('messages').on('value', snap => { allMessages = snap.val() || {}; renderMessages(); });
+    }
+
+    function renderAll() { calcTotals(); renderMembersLists(); renderStatementTable(); }
+
+    function calcTotals() {
+        let tin = 0, tout = 0;
+        for (let id in allTransactions) tin += parseFloat(allTransactions[id].amount) || 0;
+        for (let id in allExpenses) tout += parseFloat(allExpenses[id].amount) || 0;
+        document.getElementById('totalFund').innerText = formatNum(tin - tout);
+        document.getElementById('totalIn').innerText = formatNum(tin);
+        document.getElementById('totalOut').innerText = formatNum(tout);
+        document.getElementById('totalMembers').innerText = Object.keys(allMembers).length;
+    }
+
+    // ---- RENDER MEMBER LISTS ----
+    function renderMembersLists() {
+        const cont = document.getElementById('fullMembersContainer');
+        const searchCont = document.getElementById('searchResultsContainer');
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        cont.innerHTML = '';
+        if (searchVal) searchCont.innerHTML = '';
+
+        const ids = Object.keys(allMembers).sort((a, b) => allMembers[a].name.localeCompare(allMembers[b].name));
+        let count = 0;
+
+        ids.forEach(id => {
+            const m = allMembers[id];
+            let tot = 0;
+            for (let tid in allTransactions) if (allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount) || 0;
+
+            const arrears = calcArrearsMonths(id, m.joinDate);
+            const initials = m.name.trim().split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+            let arrBadge = arrears.dueMonths > 0
+                ? `<span class="arrears-badge">${arrears.dueMonths} মাস বকেয়া</span>`
+                : `<span class="arrears-badge clear"><i class="fas fa-check me-1"></i>পরিশোধিত</span>`;
+
+            const html = `
+                <div class="member-card">
+                    <div class="member-avatar">${initials}</div>
+                    <div class="member-info" onclick="showMiniStatement('${id}')" style="cursor:pointer;">
+                        <h6>${m.name}</h6>
+                        <small>${m.phone}</small><br>${arrBadge}
+                    </div>
+                    <div class="member-meta" onclick="showMiniStatement('${id}')" style="cursor:pointer;">
+                        <div class="amount">Tk. ${formatNum(tot)}</div>
+                    </div>
+                    <button class="icon-btn" onclick="initiateDelete('${id}')"><i class="fas fa-trash"></i></button>
+                </div>`;
+
+            cont.innerHTML += html;
+            if (m.name.toLowerCase().includes(searchVal)) searchCont.innerHTML += html;
+            count++;
+        });
+        document.getElementById('memberCountList').innerText = count;
+    }
+
+    // ---- STATEMENT TABLE ----
+    function renderStatementTable() {
+        const tb = document.getElementById('statementTableBody');
+        tb.innerHTML = '';
+        let sl = 1;
+        Object.keys(allMembers).sort((a, b) => allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
+            let tot = 0;
+            for (let tid in allTransactions) if (allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount) || 0;
+            const arr = calcArrearsMonths(id, allMembers[id].joinDate);
+            const arrCell = arr.dueMonths > 0
+                ? `<span style="color:var(--danger);font-weight:700;">${arr.dueMonths} মাস</span>`
+                : `<span style="color:var(--success);">✓</span>`;
+            tb.innerHTML += `<tr>
+                <td>${sl++}</td>
+                <td><div style="font-weight:600;">${allMembers[id].name}</div><small style="color:var(--text-muted);">${allMembers[id].phone}</small></td>
+                <td>${allMembers[id].phone}</td>
+                <td class="text-end fw-bold">${formatNum(tot)}</td>
+                <td class="text-center">${arrCell}</td>
+            </tr>`;
+        });
+    }
+
+    // ---- MEMBER DETAILS ----
+    function showMiniStatement(mid) {
+        currentDetailMemberId = mid;
+        const m = allMembers[mid];
+        document.getElementById('detailName').innerText = m.name;
+        document.getElementById('detailPhone').innerText = m.phone;
+        document.getElementById('editMName').value = m.name;
+        document.getElementById('editMPhone').value = m.phone;
+        document.getElementById('editMJoinDate').value = m.joinDate || '';
+        document.getElementById('editMemberFormDiv').classList.add('d-none');
+
+        const arr = calcArrearsMonths(mid, m.joinDate);
+        const arrearsDiv = document.getElementById('detailArrearsInfo');
+        if (arr.dueMonths > 0) {
+            arrearsDiv.innerHTML = `<div class="arrears-badge" style="font-size:0.8rem;padding:5px 12px;">
+                <i class="fas fa-exclamation-circle me-1"></i>${arr.dueMonths} মাস বকেয়া (Tk. ${formatNum(arr.due)})
+            </div>`;
+        } else {
+            arrearsDiv.innerHTML = `<div class="arrears-badge clear" style="font-size:0.8rem;padding:5px 12px;">
+                <i class="fas fa-check-circle me-1"></i>কোনো বকেয়া নেই
+            </div>`;
+        }
+
+        refreshMiniStatement(mid);
+        new bootstrap.Modal(document.getElementById('memberDetailsModal')).show();
+    }
+
+    function refreshMiniStatement(mid) {
+        const hc = document.getElementById('transactionHistory');
+        if (!hc) return;
+        hc.innerHTML = '';
+        let tot = 0;
+        const txs = [];
+        for (let tid in allTransactions) if (allTransactions[tid].memberId === mid) txs.push({ id: tid, ...allTransactions[tid] });
+        txs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (txs.length === 0) {
+            hc.innerHTML = `<div class="text-center p-5 text-muted">No transactions found.</div>`;
+        } else {
+            txs.forEach(tx => {
+                tot += parseFloat(tx.amount) || 0;
+                hc.innerHTML += `
+                    <div class="tx-item">
+                        <div>
+                            <span class="d-block fw-bold" style="font-size:0.9rem;">${formatDate(tx.date)}</span>
+                            <span class="badge rounded-pill" style="background:#d1fae5;color:#065f46;font-size:0.68rem;">Deposit</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="fw-bold" style="color:var(--success);">+Tk. ${formatNum(tx.amount)}</span>
+                            <i class="fas fa-trash" style="cursor:pointer;color:var(--danger);font-size:0.85rem;" onclick="if(confirm('Delete this deposit?')) db.ref('transactions/${tx.id}').remove()"></i>
+                        </div>
+                    </div>`;
+            });
+        }
+        document.getElementById('detailTotal').innerText = formatNum(tot);
+    }
+
+    // ---- DELETE ----
+    function initiateDelete(id) {
+        memberToDeleteId = id;
+        document.getElementById('deleteConfirmPass').value = '';
+        document.getElementById('deleteErrorMsg').innerText = '';
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+    }
+
+    function executeDeleteWithAuth() {
+        const pw = document.getElementById('deleteConfirmPass').value;
+        const user = firebase.auth().currentUser;
+        const cred = firebase.auth.EmailAuthProvider.credential(user.email, pw);
+        document.getElementById('deleteErrorMsg').innerText = 'Verifying...';
+        user.reauthenticateWithCredential(cred).then(() => {
+            db.ref('members/' + memberToDeleteId).remove().then(() => {
+                bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                showToast("Member deleted successfully");
+                memberToDeleteId = null;
+            });
+        }).catch(() => {
+            document.getElementById('deleteErrorMsg').innerText = 'Incorrect password. Try again.';
+        });
+    }
+
+    // ---- MEMBER EDIT ----
+    function toggleEditMemberMode() { document.getElementById('editMemberFormDiv').classList.toggle('d-none'); }
+    function saveMemberEdit() {
+        db.ref('members/' + currentDetailMemberId).update({
+            name: document.getElementById('editMName').value,
+            phone: document.getElementById('editMPhone').value,
+            joinDate: document.getElementById('editMJoinDate').value
+        }).then(() => { showToast("Member updated"); toggleEditMemberMode(); });
+    }
+
+    // ---- MESSAGES ----
+    function renderMessages() {
+        const cont = document.getElementById('messagesContainer');
+        cont.innerHTML = '';
+        const arr = [];
+        for (let id in allMessages) arr.push({ id, ...allMessages[id] });
+        if (arr.length === 0) { cont.innerHTML = '<div class="text-center text-muted py-5">No messages yet.</div>'; return; }
+        arr.sort((a, b) => new Date(b.date) - new Date(a.date));
+        arr.forEach(msg => {
+            cont.innerHTML += `
+                <div class="msg-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="fw-bold">${msg.name}</span>
+                            <span class="text-muted small ms-1">${msg.phone}</span>
+                        </div>
+                        <small class="text-muted" style="font-size:0.7rem;">${new Date(msg.date).toLocaleString('en-GB')}</small>
+                    </div>
+                    <p class="mb-2 p-2 rounded-2 small" style="background:var(--bg);">${msg.message}</p>
+                    <div class="text-end">
+                        <button class="btn btn-sm btn-danger rounded-pill px-3" onclick="if(confirm('Delete this message?')) db.ref('messages/${msg.id}').remove()">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    // ---- ADMIN INFO ----
+    function renderAdminInfo() {
+        document.getElementById('disp_adminName').innerText = adminInfo.name || '—';
+        document.getElementById('disp_adminPhone').innerText = adminInfo.phone || '—';
+        document.getElementById('disp_bankName').innerText = adminInfo.bankName || '—';
+        document.getElementById('disp_accName').innerText = adminInfo.accName || '—';
+        document.getElementById('disp_accNum').innerText = adminInfo.accNum || '—';
+        document.getElementById('disp_routingNum').innerText = adminInfo.routingNum || '—';
+        document.getElementById('disp_fbLink').href = adminInfo.fbLink || '#';
+        if (adminInfo.waNum) {
+            const n = adminInfo.waNum.replace(/\D/g, '');
+            document.getElementById('disp_waLink').href = `https://wa.me/88${n}`;
+        }
+    }
+
+    function openEditAdminModal() {
+        document.getElementById('in_adminName').value = adminInfo.name || '';
+        document.getElementById('in_adminPhone').value = adminInfo.phone || '';
+        ['bankName','accName','accNum','routingNum','fbLink','waNum'].forEach(k => {
+            document.getElementById('in_'+k).value = adminInfo[k] || '';
+        });
+        if (!document.getElementById('in_fbLink').value) document.getElementById('in_fbLink').value = 'https://www.facebook.com/share/1BGNxmfmxL/';
+        if (!document.getElementById('in_waNum').value) document.getElementById('in_waNum').value = '01890353575';
+        if (!document.getElementById('in_routingNum').value) document.getElementById('in_routingNum').value = '125270607';
+        new bootstrap.Modal(document.getElementById('editAdminModal')).show();
+    }
+
+    document.getElementById('editAdminForm').addEventListener('submit', e => {
+        e.preventDefault();
+        db.ref('adminInfo').set({
+            name: document.getElementById('in_adminName').value,
+            phone: document.getElementById('in_adminPhone').value,
+            bankName: document.getElementById('in_bankName').value,
+            accName: document.getElementById('in_accName').value,
+            accNum: document.getElementById('in_accNum').value,
+            routingNum: document.getElementById('in_routingNum').value,
+            fbLink: document.getElementById('in_fbLink').value,
+            waNum: document.getElementById('in_waNum').value
+        }).then(() => { showToast("Admin info saved"); bootstrap.Modal.getInstance(document.getElementById('editAdminModal')).hide(); });
+    });
+
+    // ---- NOTICES ----
+    function renderNoticeList() {
+        const c = document.getElementById('adminNoticeListContainer');
+        if (!c) return;
+        c.innerHTML = '';
+        const arr = [];
+        for (let id in allNotices) arr.push({ id, ...allNotices[id] });
+        arr.sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (arr.length === 0) { c.innerHTML = '<div class="text-center text-muted py-3">No notices yet.</div>'; return; }
+        arr.forEach(n => {
+            c.innerHTML += `
+                <div class="notice-item">
+                    <div class="notice-item-text">
+                        <div>${n.message}</div>
+                        <div class="notice-item-date"><i class="far fa-calendar me-1"></i>${n.date}</div>
+                    </div>
+                    <button class="icon-btn" onclick="if(confirm('Delete notice?')) db.ref('notices/${n.id}').remove()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>`;
+        });
+    }
+    function openNoticeManagerModal() { renderNoticeList(); new bootstrap.Modal(document.getElementById('manageNoticesModal')).show(); }
+
+    document.getElementById('addNoticeForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const text = document.getElementById('noticeText').value;
+        if (!text.trim()) return;
+        db.ref('notices').push({ message: text, date: new Date().toISOString().split('T')[0] })
+            .then(() => { showToast("Notice published"); document.getElementById('addNoticeForm').reset(); });
+    });
+
+    // ---- ADD MEMBER ----
+    document.getElementById('addMemberForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const joinDate = document.getElementById('memberJoinDate').value;
+        db.ref('members').push({
+            name: document.getElementById('memberName').value,
+            phone: document.getElementById('memberPhone').value,
+            joinDate: joinDate || null
+        }).then(() => {
+            showToast("Member added");
+            document.getElementById('addMemberForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide();
+        });
+    });
+
+    // ---- FUND ----
+    function openFundMemberSelect() {
+        renderFundSelectionList();
+        new bootstrap.Modal(document.getElementById('selectMemberForFundModal')).show();
+    }
+
+    function renderFundSelectionList() {
+        const container = document.getElementById('fundMemberListContainer');
+        const search = document.getElementById('fundMemberSearch').value.toLowerCase();
+        container.innerHTML = '';
+        Object.keys(allMembers).sort((a, b) => allMembers[a].name.localeCompare(allMembers[b].name)).forEach(id => {
+            const m = allMembers[id];
+            if (m.name.toLowerCase().includes(search) || m.phone.includes(search)) {
+                const div = document.createElement('div');
+                div.className = 'member-card';
+                const arr = calcArrearsMonths(id, m.joinDate);
+                const initials = m.name.trim().split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                div.innerHTML = `
+                    <div class="member-avatar">${initials}</div>
+                    <div class="member-info"><h6>${m.name}</h6><small>${m.phone}</small></div>
+                    ${arr.dueMonths > 0 ? `<span class="arrears-badge">${arr.dueMonths} মাস</span>` : ''}
+                    <i class="fas fa-chevron-right text-muted ms-2"></i>`;
+                div.onclick = () => selectMemberForFund(id, m.name);
+                container.appendChild(div);
+            }
+        });
+    }
+    document.getElementById('fundMemberSearch').addEventListener('input', renderFundSelectionList);
+
+    function selectMemberForFund(id, name) {
+        document.getElementById('fundMemberNameDisplay').value = name;
+        document.getElementById('fundMemberIdHidden').value = id;
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fundDate').value = today;
+        bootstrap.Modal.getInstance(document.getElementById('selectMemberForFundModal')).hide();
+        new bootstrap.Modal(document.getElementById('addFundModal')).show();
+    }
+
+    document.getElementById('addFundForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const mid = document.getElementById('fundMemberIdHidden').value;
+        if (!mid) return showToast("No member selected", 'danger');
+        db.ref('transactions').push({
+            memberId: mid,
+            amount: parseFloat(document.getElementById('fundAmount').value),
+            date: document.getElementById('fundDate').value
+        }).then(() => {
+            showToast("Fund added successfully");
+            document.getElementById('addFundForm').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addFundModal')).hide();
+        });
+    });
+
+    // ---- EXPENSE ----
+    function openExpenseModal() {
+        renderAdminExpenseList();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('expDate').value = today;
+        new bootstrap.Modal(document.getElementById('addExpenseModal')).show();
+    }
+
+    function renderAdminExpenseList() {
+        const cont = document.getElementById('adminExpenseList');
+        if (!cont) return;
+        cont.innerHTML = '';
+        const arr = [];
+        for (let id in allExpenses) arr.push({ id, ...allExpenses[id] });
+        arr.sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (arr.length === 0) { cont.innerHTML = '<div class="text-center text-muted py-3 small">No expenses found.</div>'; return; }
+        arr.forEach(ex => {
+            cont.innerHTML += `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+                    <div>
+                        <div style="font-weight:600;font-size:0.88rem;">${ex.reason}</div>
+                        <small style="color:var(--text-muted);">${ex.date}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="color:var(--danger);font-weight:700;">-${formatNum(ex.amount)}</span>
+                        <button class="icon-btn" onclick="if(confirm('Delete expense?')) db.ref('expenses/${ex.id}').remove()"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    document.getElementById('addExpenseForm').addEventListener('submit', e => {
+        e.preventDefault();
+        db.ref('expenses').push({
+            amount: parseFloat(document.getElementById('expAmount').value),
+            reason: document.getElementById('expReason').value,
+            date: document.getElementById('expDate').value
+        }).then(() => {
+            showToast("Expense added");
+            document.getElementById('addExpenseForm').reset();
+        });
+    });
+
+    // ---- SWITCH VIEW ----
+    function switchView(v) {
+        const oc = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasMenu'));
+        if (oc) oc.hide();
+        document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+        const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+        if (el) el.classList.add('active');
+        window.scrollTo(0, 0);
+        return false;
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderMembersLists);
+
+    // ---- PDF ----
+    function getCommonPDFHeader(doc) {
+        doc.setFontSize(14); doc.setTextColor(26, 86, 219); doc.setFont("helvetica", "bold");
+        const title = "Pocchim Charbata Youth Social Welfare Organization";
+        const tw = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        doc.text(title, (doc.internal.pageSize.width - tw) / 2, 15);
+        doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+        const addr = "Pocchim Charbata, Subarnachar, Noakhali | Est: 01/03/2025";
+        const aw = doc.getStringUnitWidth(addr) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        doc.text(addr, (doc.internal.pageSize.width - aw) / 2, 21);
+        doc.setDrawColor(26, 86, 219); doc.setLineWidth(0.5);
+        doc.line(14, 24, doc.internal.pageSize.width - 14, 24);
+        return 30;
+    }
+
+    function downloadStatementPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let startY = getCommonPDFHeader(doc);
+        doc.setFontSize(11); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+        doc.text("Members Contribution & Arrears Statement", 14, startY);
+        doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+        doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, 14, startY + 5);
+        const ids = Object.keys(allMembers).sort((a, b) => allMembers[a].name.localeCompare(allMembers[b].name));
+        const rows = []; let sl = 1, grandTotal = 0;
+        ids.forEach(id => {
+            let tot = 0;
+            for (let tid in allTransactions) if (allTransactions[tid].memberId === id) tot += parseFloat(allTransactions[tid].amount) || 0;
+            grandTotal += tot;
+            const arr = calcArrearsMonths(id, allMembers[id].joinDate);
+            rows.push([sl++, allMembers[id].name, allMembers[id].phone, tot.toLocaleString(), arr.dueMonths > 0 ? arr.dueMonths + ' months' : 'Clear']);
+        });
+        doc.autoTable({
+            head: [['#', 'Name', 'Phone', 'Total (Tk)', 'Arrears']],
+            body: rows, startY: startY + 10, theme: 'grid',
+            headStyles: { fillColor: [26, 86, 219], textColor: 255 },
+            columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 3: { halign: 'right' }, 4: { halign: 'center' } },
+            foot: [['', 'Total: ' + ids.length, '', 'Grand Total: ' + grandTotal.toLocaleString(), '']],
+            footStyles: { fillColor: [240, 242, 255], textColor: [0, 0, 0], fontStyle: 'bold' }
+        });
+        doc.save("Admin_Statement.pdf");
+    }
+
+    // ---- UTILS ----
+    function formatNum(n) { return parseFloat(n || 0).toLocaleString('en-IN'); }
+    function formatDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    function showToast(msg, type = 'success') {
+        const el = document.getElementById('customToast');
+        document.getElementById('toastMessage').innerText = msg;
+        el.className = `toast align-items-center border-0 shadow text-white bg-${type}`;
+        new bootstrap.Toast(el, { delay: 3000 }).show();
+    }
+</script>
+</body>
+</html>
